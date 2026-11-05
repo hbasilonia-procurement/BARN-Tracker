@@ -1,0 +1,1337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#2c8845">
+<meta name="description" content="BARN Daily Delivery Tracker – Eight8Ate Purchasing">
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<link rel="alternate icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2064%2064%22%3E%3Cdefs%3E%3ClinearGradient%20id%3D%22g%22%20x1%3D%220%22%20y1%3D%220%22%20x2%3D%221%22%20y2%3D%221%22%3E%3Cstop%20offset%3D%220%22%20stop-color%3D%22%233fae5f%22/%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%231f6b34%22/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect%20x%3D%222%22%20y%3D%222%22%20width%3D%2260%22%20height%3D%2260%22%20rx%3D%2216%22%20fill%3D%22url%28%23g%29%22/%3E%3Cpath%20d%3D%22M9%2030%20L32%2012%20L55%2030%22%20fill%3D%22none%22%20stroke%3D%22%23f4edcf%22%20stroke-width%3D%224.4%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22/%3E%3Ctext%20x%3D%2232%22%20y%3D%2245%22%20text-anchor%3D%22middle%22%20font-family%3D%22Arial%20Black%2CArial%2Csans-serif%22%20font-weight%3D%22800%22%20font-size%3D%2215.5%22%20fill%3D%22%23fff%22%20letter-spacing%3D%221%22%3EBARN%3C/text%3E%3Crect%20x%3D%2217%22%20y%3D%2249%22%20width%3D%2230%22%20height%3D%223%22%20rx%3D%221.5%22%20fill%3D%22%23e8a33a%22/%3E%3C/svg%3E">
+<link rel="apple-touch-icon" href="favicon.svg">
+<title>BARN Daily Delivery Tracker</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script>(function(){try{var t=localStorage.getItem("dt_theme");var d=t?t==="dark":matchMedia("(prefers-color-scheme: dark)").matches;document.documentElement.setAttribute("data-theme",d?"dark":"light")}catch(e){}})();</script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+:root{
+  --ink:#18301f;--muted:#5e7363;--line:rgba(44,136,69,.12);--line2:rgba(44,136,69,.22);
+  --brand:#1f6b34;--brand2:#2c8845;--brandSoft:rgba(44,136,69,.12);--cream:#f4edcf;
+  --glass:rgba(255,255,255,.55);--glass2:rgba(255,255,255,.72);--glassB:rgba(255,255,255,.7);
+  --shadow:0 10px 30px rgba(20,70,35,.10),0 1px 0 rgba(255,255,255,.6) inset;
+  --ok:#119657;--okSoft:rgba(17,150,87,.12);--warn:#c46a00;--warnSoft:rgba(232,140,20,.14);--bad:#d6334a;--badSoft:rgba(214,51,74,.12);--info:#2f6fd6;--infoSoft:rgba(47,111,214,.12);
+  --gray:#8a94a6;--graySoft:rgba(120,110,100,.10);
+  --ordCol:rgba(244,237,207,.55);--actCol:rgba(205,245,222,.42);
+  --r:18px;
+}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%}
+body{font:13px/1.45 "Plus Jakarta Sans","Segoe UI",system-ui,-apple-system,Roboto,Arial,sans-serif;color:var(--ink);
+  background:
+    radial-gradient(900px 600px at 8% -10%,rgba(44,136,69,.30),transparent 60%),
+    radial-gradient(800px 600px at 105% 10%,rgba(244,237,207,.95),transparent 60%),
+    radial-gradient(900px 700px at 60% 120%,rgba(44,136,69,.22),transparent 60%),
+    linear-gradient(160deg,#f7f8f1 0%,#eef4e8 45%,#f6f1dc 100%);
+  background-attachment:fixed}
+button,input,select,textarea{font:inherit;color:inherit}
+.hidden{display:none!important}
+::-webkit-scrollbar{width:10px;height:10px}::-webkit-scrollbar-thumb{background:rgba(31,107,52,.25);border-radius:10px;border:2px solid transparent;background-clip:padding-box}::-webkit-scrollbar-track{background:transparent}
+
+/* ---------- Floating glass header ---------- */
+header{position:sticky;top:10px;z-index:30;margin:10px 14px 0;display:flex;align-items:center;gap:14px;padding:9px 14px;flex-wrap:wrap;
+  background:linear-gradient(120deg,rgba(31,107,52,.92),rgba(44,136,69,.86));color:#fff;border-radius:var(--r);
+  backdrop-filter:blur(18px) saturate(160%);-webkit-backdrop-filter:blur(18px) saturate(160%);
+  border:1px solid rgba(255,255,255,.25);box-shadow:0 14px 34px rgba(20,80,40,.28)}
+.logo{color:#fff;display:flex;align-items:center;gap:10px;font-weight:800;font-size:15px;letter-spacing:.2px}
+.logo small{display:block;font-weight:500;font-size:11px;opacity:.85}
+.weekbox{display:flex;align-items:center;gap:4px;margin-left:10px;background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.22);border-radius:14px;padding:4px 6px}
+.weekbox button{background:transparent;border:0;color:#fff;cursor:pointer;font-size:15px;padding:4px 10px;border-radius:10px;font-weight:700}
+.weekbox button:hover{background:rgba(255,255,255,.2)}
+.weekbox .wk{color:var(--cream);font-weight:800;min-width:62px;text-align:center;font-size:14px}
+.weekbox .rng{font-size:12px;opacity:.9;padding:0 4px}
+.weekbox input[type=date]{background:rgba(255,255,255,.92);color:var(--ink);border:0;border-radius:9px;padding:3px 7px;font-size:12px}
+.spacer{flex:1}
+.sync{font-size:12px;display:flex;align-items:center;gap:7px;background:rgba(255,255,255,.14);padding:5px 10px;border-radius:20px}
+.dot{width:8px;height:8px;border-radius:50%;background:#7bf0a3;display:inline-block;box-shadow:0 0 0 3px rgba(123,240,163,.25)}
+.dot.busy{background:#ffd166;box-shadow:0 0 0 3px rgba(255,209,102,.3)}.dot.err{background:#ff6b7d;box-shadow:0 0 0 3px rgba(255,107,125,.3)}.dot.off{background:#e6e0dc;box-shadow:none}
+header .hbtn{background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.3);color:#fff;border-radius:11px;padding:6px 12px;cursor:pointer;font-size:12px;font-weight:600}
+header .hbtn:hover{background:rgba(255,255,255,.3)}
+
+/* ---------- Pill nav ---------- */
+nav{position:sticky;top:76px;z-index:25;margin:12px 14px 0;display:flex;gap:4px;padding:5px;overflow-x:auto;width:max-content;max-width:calc(100% - 28px);
+  background:var(--glass);backdrop-filter:blur(16px) saturate(150%);-webkit-backdrop-filter:blur(16px) saturate(150%);border:1px solid var(--glassB);border-radius:16px;box-shadow:var(--shadow)}
+nav button{background:none;border:0;padding:8px 15px;cursor:pointer;color:var(--muted);font-weight:700;white-space:nowrap;display:flex;gap:7px;align-items:center;border-radius:12px;transition:.15s}
+nav button:hover{background:rgba(255,255,255,.6);color:var(--ink)}
+nav button.on{background:linear-gradient(135deg,var(--brand),var(--brand2));color:var(--cream);box-shadow:0 6px 16px rgba(31,107,52,.28)}
+nav button .ico{font-size:14px}
+nav .badge{background:var(--bad);color:#fff;border-radius:10px;font-size:11px;padding:0 7px;min-width:20px;text-align:center}
+nav button.on .badge{background:#fff;color:var(--bad)}
+nav .badge.zero{background:var(--graySoft);color:var(--muted)}
+
+main{padding:14px 14px 40px}
+.view{display:none;animation:fade .25s ease}.view.on{display:block}
+@keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+
+/* ---------- Glass surfaces ---------- */
+.kpi,.toolbar,.gridwrap,.panel{background:var(--glass);backdrop-filter:blur(18px) saturate(160%);-webkit-backdrop-filter:blur(18px) saturate(160%);border:1px solid var(--glassB);border-radius:var(--r);box-shadow:var(--shadow)}
+
+/* ---------- Greeting ---------- */
+.greet{display:flex;align-items:center;gap:16px;flex-wrap:wrap;padding:14px 18px;margin-bottom:14px;position:relative;overflow:hidden;
+  background:linear-gradient(120deg,rgba(255,255,255,.72),rgba(244,237,207,.55));backdrop-filter:blur(18px) saturate(160%);-webkit-backdrop-filter:blur(18px) saturate(160%);border:1px solid var(--glassB);border-radius:var(--r);box-shadow:var(--shadow)}
+.greet::after{content:"";position:absolute;right:-60px;top:-60px;width:220px;height:220px;border-radius:50%;background:radial-gradient(circle,rgba(44,136,69,.22),transparent 70%)}
+.greet .gi{font-size:34px;line-height:1;filter:drop-shadow(0 4px 8px rgba(20,70,35,.15))}
+.greet .gh{font-size:20px;font-weight:800;letter-spacing:-.2px;color:var(--brand)}
+.greet .gs{color:var(--muted);font-size:12.5px;margin-top:2px}
+.greet .gchips{display:flex;gap:8px;flex-wrap:wrap;margin-left:auto;position:relative;z-index:1}
+.greet .gchip{background:rgba(255,255,255,.8);border:1px solid rgba(255,255,255,.95);border-radius:14px;padding:7px 12px;font-weight:700;font-size:12px;cursor:pointer;box-shadow:0 1px 2px rgba(20,70,35,.06);transition:.15s}
+.greet .gchip:hover{transform:translateY(-1px);box-shadow:0 6px 14px rgba(20,70,35,.12)}
+.greet .gchip b{font-size:15px;margin-right:4px}
+.greet .gchip.ok b{color:var(--ok)}.greet .gchip.bad b{color:var(--bad)}.greet .gchip.due b{color:#8a6100}
+/* ---------- KPI cards ---------- */
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin-bottom:14px}
+.kpi{position:relative;padding:14px 16px 13px 18px;overflow:hidden;transition:transform .15s}
+.kpi:hover{transform:translateY(-2px)}
+.kpi::before{content:"";position:absolute;right:-26px;top:-26px;width:90px;height:90px;border-radius:50%;opacity:.55;filter:blur(2px);background:var(--accent,#f2b48a)}
+.kpi::after{content:"";position:absolute;left:0;top:14px;bottom:14px;width:4px;border-radius:0 4px 4px 0;background:var(--accent2,#2c8845)}
+.kpi:nth-child(1){--accent:radial-gradient(circle,#a8dcb6,transparent 70%);--accent2:#2c8845}
+.kpi:nth-child(2){--accent:radial-gradient(circle,#f4edcf,transparent 70%);--accent2:#c9b45a}
+.kpi:nth-child(3){--accent:radial-gradient(circle,#c8ebd2,transparent 70%);--accent2:#1f6b34}
+.kpi:nth-child(4){--accent:radial-gradient(circle,#b9d2ff,transparent 70%);--accent2:#2f6fd6}
+.kpi:nth-child(5){--accent:radial-gradient(circle,#ffb9c4,transparent 70%);--accent2:#d6334a}
+.kpi .l{position:relative;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;font-weight:700}
+.kpi .v{position:relative;font-size:24px;font-weight:800;margin-top:4px;font-variant-numeric:tabular-nums;letter-spacing:-.3px}
+.kpi .s{position:relative;font-size:11.5px;color:var(--muted);margin-top:1px}
+.kpi.good .v{color:var(--ok)}.kpi.bad .v{color:var(--bad)}.kpi.warn .v{color:var(--warn)}
+.bar{position:relative;height:7px;background:rgba(44,136,69,.10);border-radius:6px;overflow:hidden;margin-top:8px}
+.bar i{display:block;height:100%;border-radius:6px;background:linear-gradient(90deg,#2fc27a,#119657)}
+.bar i.low{background:linear-gradient(90deg,#ff7a8c,#d6334a)}.bar i.mid{background:linear-gradient(90deg,#ffc15a,#e08a00)}
+
+/* ---------- Toolbar ---------- */
+.toolbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:10px 12px;margin-bottom:12px}
+.toolbar .grp{display:flex;gap:6px;align-items:center}
+.toolbar .sep{width:1px;height:24px;background:var(--line2)}
+input.txt,select.txt{border:1px solid rgba(255,255,255,.9);border-radius:11px;padding:7px 11px;background:rgba(255,255,255,.75);min-width:0;box-shadow:0 1px 2px rgba(20,70,35,.06)}
+input.txt:focus,select.txt:focus{outline:none;border-color:var(--brand2);box-shadow:0 0 0 4px rgba(44,136,69,.15)}
+.btn{border:1px solid rgba(255,255,255,.9);background:rgba(255,255,255,.72);border-radius:11px;padding:7px 13px;cursor:pointer;font-weight:700;white-space:nowrap;box-shadow:0 1px 2px rgba(20,70,35,.08);transition:.15s}
+.btn:hover{background:#fff;transform:translateY(-1px);box-shadow:0 6px 14px rgba(20,70,35,.12)}
+.btn.pri{background:linear-gradient(135deg,var(--brand),var(--brand2));border-color:transparent;color:#fff;box-shadow:0 6px 16px rgba(31,107,52,.28)}
+.btn.pri:hover{filter:brightness(1.06)}
+.btn.danger{color:var(--bad)}
+.btn.sm{padding:3px 9px;font-size:12px;border-radius:8px}
+.btn:disabled{opacity:.45;cursor:not-allowed;transform:none;box-shadow:none}
+label.chk{display:flex;gap:6px;align-items:center;cursor:pointer;user-select:none;color:var(--muted);font-weight:600}
+input[type=checkbox],input[type=radio]{accent-color:var(--brand2);width:15px;height:15px}
+
+/* ---------- Data grid (kept crisp for reading) ---------- */
+.gridwrap{overflow:auto;max-height:calc(100vh - 300px);padding:0}
+table.g{border-collapse:separate;border-spacing:0;width:max-content;min-width:100%;font-variant-numeric:tabular-nums}
+table.g th,table.g td{border-right:1px solid var(--line);border-bottom:1px solid var(--line);padding:0;white-space:nowrap;background:rgba(255,255,255,.62)}
+table.g thead th{position:sticky;z-index:5;background:rgba(248,250,243,.94);backdrop-filter:blur(10px);font-size:11px;font-weight:800;color:#3f5a46;padding:7px 8px;text-align:center;letter-spacing:.2px}
+table.g thead tr.h1 th{top:0;height:26px}
+table.g thead tr.h2 th{top:26px}
+table.g thead th.ord{background:rgba(244,237,207,.97);color:#6d6224}
+table.g thead th.act{background:rgba(220,247,231,.96);color:#0c6b3d}
+table.g thead th.today{box-shadow:inset 0 -3px 0 var(--brand2)}
+table.g td.c{padding:6px 8px}
+table.g td.r{text-align:right;padding:6px 8px}
+table.g td.ordc{background:var(--ordCol)}
+table.g td.actc{background:var(--actCol)}
+table.g td.todayc{box-shadow:inset 2px 0 0 rgba(44,136,69,.35),inset -2px 0 0 rgba(44,136,69,.35)}
+table.g td.tot{font-weight:800;background:rgba(255,255,255,.8)}
+table.g .stick{position:sticky;left:0;z-index:3}
+table.g thead .stick{z-index:7}
+table.g td.stick{background:rgba(255,255,255,.92)}
+table.g tbody tr:hover td{background-color:rgba(246,250,240,.95)}
+table.g tr.sel td{background-color:rgba(214,229,255,.75)!important}
+table.g input.cell{border:0;background:transparent;width:100%;padding:6px 8px;text-align:right;outline:none;min-width:52px;border-radius:6px}
+table.g input.cell.t{text-align:left}
+table.g input.cell:focus,table.g select.cell:focus{background:#fff;box-shadow:inset 0 0 0 2px var(--brand2),0 4px 12px rgba(44,136,69,.18)}
+table.g input.cell.short{color:var(--bad);font-weight:700}
+table.g input.cell.over{color:var(--info);font-weight:700}
+table.g input.cell.has{font-weight:700}
+table.g input.cell::placeholder{color:#9db3a2;font-weight:500}
+td.desc{max-width:330px;overflow:hidden;text-overflow:ellipsis}
+td.desc .sub{display:block;color:var(--muted);font-size:11px}
+.secrow td{background:linear-gradient(90deg,rgba(44,136,69,.16),rgba(44,136,69,.04))!important;font-weight:800;color:var(--brand);padding:7px 10px!important;position:sticky;left:0}
+tfoot td{position:sticky;bottom:0;background:rgba(248,250,243,.95)!important;font-weight:800;z-index:4}
+
+.pill{display:inline-block;border-radius:20px;padding:2px 10px;font-size:11px;font-weight:800;white-space:nowrap}
+.p-ok{background:var(--okSoft);color:var(--ok)}
+.p-late{background:var(--warnSoft);color:var(--warn)}
+.p-short{background:var(--badSoft);color:var(--bad)}
+.p-over{background:var(--infoSoft);color:var(--info)}
+.p-due{background:rgba(255,205,60,.22);color:#8a6100}
+.p-sch{background:var(--graySoft);color:var(--muted)}
+.p-none{background:transparent;color:#a9b8ac;font-weight:600}
+.flag{display:inline-block;font-size:10px;font-weight:800;border-radius:6px;padding:1px 6px;margin-left:4px;background:var(--badSoft);color:var(--bad)}
+.flag.w{background:var(--warnSoft);color:var(--warn)}
+.tag{display:inline-block;font-size:10.5px;border-radius:7px;padding:1px 7px;background:var(--graySoft);color:#3f5a46;font-weight:700}
+.tag.mfi{background:var(--infoSoft);color:var(--info)}.tag.om{background:var(--warnSoft);color:var(--warn)}.tag.dir{background:var(--okSoft);color:var(--ok)}.tag.src{background:rgba(124,58,237,.12);color:#6b21a8}
+
+/* ---------- Panels ---------- */
+.panel{padding:16px;margin-bottom:14px}
+.panel h3{margin:0 0 10px;font-size:14px;font-weight:800;display:flex;align-items:center;gap:8px}
+.panel h3::before{content:"";width:8px;height:8px;border-radius:3px;background:linear-gradient(135deg,var(--brand),var(--brand2))}
+.cols{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media(max-width:1000px){.cols{grid-template-columns:1fr}}
+table.s{border-collapse:separate;border-spacing:0;width:100%;font-variant-numeric:tabular-nums}
+table.s th{font-size:10.5px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);text-align:left;padding:8px;border-bottom:1px solid var(--line2);background:rgba(255,255,255,.55);position:sticky;top:0;font-weight:800}
+table.s td{padding:8px;border-bottom:1px solid var(--line)}
+table.s td.r,table.s th.r{text-align:right}
+table.s tr.click{cursor:pointer}
+table.s tr.click:hover td{background:rgba(255,255,255,.7)}
+.empty{color:var(--muted);text-align:center;padding:34px}
+
+/* Today day pills */
+.daytabs{display:flex;gap:6px;flex-wrap:wrap}
+.daytabs button{border:1px solid rgba(255,255,255,.9);background:rgba(255,255,255,.65);border-radius:14px;padding:7px 14px;cursor:pointer;font-weight:800;transition:.15s;min-width:70px}
+.daytabs button:hover{background:#fff}
+.daytabs button.on{background:linear-gradient(135deg,var(--brand),var(--brand2));border-color:transparent;color:#fff;box-shadow:0 6px 16px rgba(31,107,52,.28)}
+.daytabs button small{display:block;font-weight:500;font-size:11px;opacity:.85}
+
+.alertgrp{margin-bottom:14px}
+.alertgrp h4{margin:0 0 8px;font-size:13.5px;font-weight:800;display:flex;align-items:center;gap:8px}
+
+/* Modal */
+.modalbg{position:fixed;inset:0;background:rgba(15,45,25,.28);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);z-index:60;display:flex;align-items:flex-start;justify-content:center;padding:44px 16px;overflow:auto;animation:fade .2s}
+.modal{background:rgba(255,255,255,.82);backdrop-filter:blur(24px) saturate(160%);-webkit-backdrop-filter:blur(24px) saturate(160%);border:1px solid rgba(255,255,255,.9);border-radius:22px;width:min(1000px,100%);box-shadow:0 30px 70px rgba(15,50,25,.3);display:flex;flex-direction:column;max-height:calc(100vh - 88px)}
+.modal .mh{padding:14px 18px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:10px}
+.modal .mh h3{margin:0;font-size:15.5px;font-weight:800;flex:1}
+.modal .mb{padding:14px 18px;overflow:auto}
+.modal .mf{padding:12px 18px;border-top:1px solid var(--line);display:flex;gap:8px;justify-content:flex-end;align-items:center}
+.x{background:rgba(44,136,69,.08);border:0;font-size:18px;cursor:pointer;color:var(--muted);width:30px;height:30px;border-radius:50%}
+.x:hover{background:var(--badSoft);color:var(--bad)}
+.form{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.form label{display:flex;flex-direction:column;gap:4px;font-size:10.5px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.4px}
+.form label.w2{grid-column:span 2}.form label.w4{grid-column:span 4}
+@media(max-width:700px){.form{grid-template-columns:1fr 1fr}.form label.w4,.form label.w2{grid-column:span 2}}
+
+/* Login */
+#login{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;z-index:100;
+  background:radial-gradient(700px 500px at 20% 20%,rgba(244,237,207,.55),transparent 60%),radial-gradient(700px 500px at 80% 80%,rgba(63,163,90,.7),transparent 60%),linear-gradient(135deg,#2c8845,#123d20)}
+#login .box{background:rgba(255,255,255,.72);backdrop-filter:blur(24px) saturate(160%);-webkit-backdrop-filter:blur(24px) saturate(160%);border:1px solid rgba(255,255,255,.85);border-radius:24px;padding:30px;width:min(390px,92vw);box-shadow:0 30px 70px rgba(0,0,0,.35)}
+#login h2{margin:12px 0 4px;font-size:20px;font-weight:800}
+#login p{margin:0 0 18px;color:var(--muted);font-size:12.5px}
+#login input{width:100%;margin-bottom:10px;padding:11px 13px;border:1px solid rgba(255,255,255,.95);border-radius:12px;background:rgba(255,255,255,.85)}
+#login input:focus{outline:none;box-shadow:0 0 0 4px rgba(44,136,69,.18);border-color:var(--brand2)}
+#login .btn{width:100%;padding:11px;margin-bottom:8px}
+#login .msg{font-size:12px;min-height:16px;color:var(--bad)}
+
+.toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);background:rgba(18,48,30,.88);backdrop-filter:blur(12px);color:#fff;padding:11px 18px;border-radius:14px;z-index:90;font-size:13px;box-shadow:0 12px 30px rgba(0,0,0,.25);display:flex;gap:12px;align-items:center;animation:fade .2s}
+.toast button{background:rgba(255,255,255,.15);border:0;color:var(--cream);font-weight:800;cursor:pointer;border-radius:8px;padding:3px 9px}
+.muted{color:var(--muted)}
+.nowrap{white-space:nowrap}
+.locchips{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0}
+.chip{display:inline-flex;align-items:center;gap:6px;border:1px solid rgba(255,255,255,.95);border-radius:20px;padding:4px 6px 4px 12px;background:rgba(255,255,255,.75);font-weight:800;box-shadow:0 1px 2px rgba(20,70,35,.08)}
+.chip button{border:0;background:var(--graySoft);border-radius:50%;width:20px;height:20px;cursor:pointer;line-height:20px;padding:0;color:var(--muted)}
+.chip button:hover{background:var(--badSoft);color:var(--bad)}
+@media print{header,nav,.toolbar,.noprint{display:none!important}.gridwrap{max-height:none;overflow:visible;border:0;box-shadow:none;background:#fff}body{background:#fff}}
+@media(max-width:760px){header{top:0;margin:0;border-radius:0 0 18px 18px}nav{top:auto;position:relative}.weekbox{margin-left:0}}
+
+/* ===== DARK THEME (glass, light entry grids) ===== */
+html[data-theme="dark"]{--ink:#e6efe8;--muted:#93aa9a;--line:rgba(140,220,160,.09);--line2:rgba(140,220,160,.16);
+  --brand:#3fae5f;--brand2:#2c8845;--cream:#efe5b8;
+  --glass:rgba(20,38,27,.55);--glass2:rgba(24,44,31,.72);--glassB:rgba(140,220,160,.12);
+  --shadow:0 14px 34px rgba(0,0,0,.45),0 1px 0 rgba(255,255,255,.04) inset;
+  --ok:#4fd88a;--okSoft:rgba(79,216,138,.14);--warn:#ffb648;--warnSoft:rgba(255,182,72,.14);--bad:#ff6b7f;--badSoft:rgba(255,107,127,.14);--info:#7fb0ff;--infoSoft:rgba(127,176,255,.14);
+  --graySoft:rgba(255,255,255,.07);
+  --ordCol:rgba(239,229,184,.06);--actCol:rgba(79,216,138,.07);}
+html[data-theme="dark"] body{color:var(--ink);background:
+  radial-gradient(900px 600px at 8% -10%,rgba(44,136,69,.35),transparent 60%),
+  radial-gradient(800px 600px at 105% 5%,rgba(239,229,184,.10),transparent 60%),
+  radial-gradient(900px 700px at 60% 120%,rgba(44,136,69,.25),transparent 60%),
+  linear-gradient(160deg,#0b1610 0%,#0f1d15 50%,#0c1711 100%);background-attachment:fixed}
+html[data-theme="dark"] header{background:linear-gradient(120deg,rgba(26,74,40,.78),rgba(44,136,69,.55));border-color:rgba(140,220,160,.18);box-shadow:0 16px 40px rgba(0,0,0,.5)}
+html[data-theme="dark"] .weekbox input[type=date]{background:rgba(10,24,16,.8);color:var(--ink);color-scheme:dark}
+html[data-theme="dark"] nav button:hover{background:rgba(255,255,255,.06);color:var(--ink)}
+html[data-theme="dark"] nav button.on{box-shadow:0 6px 18px rgba(63,174,95,.35)}
+html[data-theme="dark"] .greet{background:linear-gradient(120deg,rgba(24,46,32,.75),rgba(60,70,40,.35))}
+html[data-theme="dark"] .greet .gh{color:var(--cream)}
+html[data-theme="dark"] .greet .gchip{background:rgba(255,255,255,.06);border-color:rgba(140,220,160,.14);color:var(--ink)}
+html[data-theme="dark"] .greet .gchip.due b{color:var(--cream)}
+html[data-theme="dark"] .kpi:nth-child(1){--accent:radial-gradient(circle,rgba(63,174,95,.55),transparent 70%);--accent2:#3fae5f}
+html[data-theme="dark"] .kpi:nth-child(2){--accent:radial-gradient(circle,rgba(239,229,184,.35),transparent 70%);--accent2:#d9c77a}
+html[data-theme="dark"] .kpi:nth-child(3){--accent:radial-gradient(circle,rgba(79,216,138,.4),transparent 70%);--accent2:#4fd88a}
+html[data-theme="dark"] .kpi:nth-child(4){--accent:radial-gradient(circle,rgba(127,176,255,.4),transparent 70%);--accent2:#7fb0ff}
+html[data-theme="dark"] .kpi:nth-child(5){--accent:radial-gradient(circle,rgba(255,107,127,.4),transparent 70%);--accent2:#ff6b7f}
+html[data-theme="dark"] .bar{background:rgba(255,255,255,.08)}
+html[data-theme="dark"] input.txt,
+html[data-theme="dark"] select.txt,
+html[data-theme="dark"] .btn,
+html[data-theme="dark"] .daytabs button,
+html[data-theme="dark"] .chip{background:rgba(255,255,255,.06);border-color:rgba(140,220,160,.14);color:var(--ink);box-shadow:none}
+html[data-theme="dark"] select.txt option{background:#13241a}
+html[data-theme="dark"] .btn:hover,
+html[data-theme="dark"] .daytabs button:hover{background:rgba(255,255,255,.12)}
+html[data-theme="dark"] .btn.pri,
+html[data-theme="dark"] .daytabs button.on{background:linear-gradient(135deg,#2c8845,#3fae5f);color:#fff;border-color:transparent}
+html[data-theme="dark"] table.g th,
+html[data-theme="dark"] table.g td{background:rgba(16,30,21,.72)}
+html[data-theme="dark"] table.g thead th{background:rgba(18,34,24,.96);color:#b9cdbf}
+html[data-theme="dark"] table.g thead th.ord{background:rgba(52,50,32,.96);color:var(--cream)}
+html[data-theme="dark"] table.g thead th.act{background:rgba(22,58,36,.96);color:#8ff0b5}
+html[data-theme="dark"] table.g td.stick,
+html[data-theme="dark"] table.g td.tot{background:rgba(20,36,26,.92)}
+html[data-theme="dark"] table.g tbody tr:hover td{background-color:rgba(36,62,45,.9)}
+html[data-theme="dark"] table.g input.cell,
+html[data-theme="dark"] table.g select.cell{color:var(--ink);color-scheme:dark}
+html[data-theme="dark"] table.g input.cell:focus,
+html[data-theme="dark"] table.g select.cell:focus{background:#0f2016;box-shadow:inset 0 0 0 2px #3fae5f,0 4px 14px rgba(63,174,95,.25)}
+html[data-theme="dark"] table.g input.cell::placeholder{color:#5f7a68}
+html[data-theme="dark"] .secrow td{background:linear-gradient(90deg,rgba(63,174,95,.20),rgba(63,174,95,.04))!important;color:#8fe3a8}
+html[data-theme="dark"] table.s th{background:rgba(255,255,255,.04)}
+html[data-theme="dark"] table.s tr.click:hover td{background:rgba(255,255,255,.05)}
+html[data-theme="dark"] .tag{background:rgba(255,255,255,.08);color:#c9d8ce}
+html[data-theme="dark"] .p-due{background:rgba(239,229,184,.14);color:var(--cream)}
+html[data-theme="dark"] .modal{background:rgba(16,30,21,.88);border-color:rgba(140,220,160,.15)}
+html[data-theme="dark"] .x{background:rgba(255,255,255,.07)}
+html[data-theme="dark"] .toast{background:rgba(236,245,238,.92);color:#0f1d15}
+html[data-theme="dark"] #login .box{background:rgba(16,30,21,.7);border-color:rgba(140,220,160,.18);color:var(--ink)}
+html[data-theme="dark"] #login input{background:rgba(255,255,255,.06);border-color:rgba(140,220,160,.16);color:var(--ink)}
+html[data-theme="dark"] input[type=checkbox],
+html[data-theme="dark"] input[type=radio]{accent-color:#3fae5f}
+html[data-theme="dark"] td[style*="#f8f6e8"]{background:rgba(52,50,32,.55)!important}
+html[data-theme="dark"] th[style*="#f4edcf"]{background:rgba(52,50,32,.96)!important;color:var(--cream)!important}
+html[data-theme="dark"] #login{background:radial-gradient(700px 500px at 20% 20%,rgba(63,174,95,.35),transparent 60%),radial-gradient(700px 500px at 80% 80%,rgba(239,229,184,.10),transparent 60%),linear-gradient(135deg,#0f2416,#060d09)}
+html[data-theme="dark"]{--glass:rgba(255,255,255,.045);--glassB:rgba(255,255,255,.14)}
+html[data-theme="dark"] body{background:
+  radial-gradient(600px 420px at 12% 8%,rgba(63,174,95,.55),transparent 62%),
+  radial-gradient(520px 380px at 88% 18%,rgba(239,229,184,.22),transparent 62%),
+  radial-gradient(700px 520px at 75% 95%,rgba(44,136,69,.50),transparent 62%),
+  radial-gradient(500px 400px at 20% 85%,rgba(30,110,140,.28),transparent 62%),
+  linear-gradient(160deg,#07110b 0%,#0b1a11 50%,#08130d 100%);background-attachment:fixed}
+html[data-theme="dark"] body::before,
+html[data-theme="dark"] body::after{content:"";position:fixed;z-index:-1;border-radius:50%;filter:blur(40px);pointer-events:none}
+html[data-theme="dark"] body::before{width:420px;height:420px;left:38%;top:28%;background:radial-gradient(circle,rgba(63,174,95,.35),transparent 65%)}
+html[data-theme="dark"] body::after{width:360px;height:360px;right:4%;bottom:6%;background:radial-gradient(circle,rgba(239,229,184,.16),transparent 65%)}
+html[data-theme="dark"] .kpi,
+html[data-theme="dark"] .toolbar,
+html[data-theme="dark"] .gridwrap,
+html[data-theme="dark"] .panel,
+html[data-theme="dark"] nav,
+html[data-theme="dark"] .greet,
+html[data-theme="dark"] .modal,
+html[data-theme="dark"] #login .box{background:linear-gradient(145deg,rgba(255,255,255,.10),rgba(255,255,255,.025) 45%,rgba(255,255,255,.05))!important;
+  backdrop-filter:blur(28px) saturate(185%)!important;-webkit-backdrop-filter:blur(28px) saturate(185%)!important;
+  border:1px solid rgba(255,255,255,.14)!important;
+  box-shadow:0 20px 50px rgba(0,0,0,.45),inset 0 1px 0 rgba(255,255,255,.22),inset 0 -1px 0 rgba(255,255,255,.04),inset 1px 0 0 rgba(255,255,255,.06)!important}
+html[data-theme="dark"] .kpi,
+html[data-theme="dark"] .panel,
+html[data-theme="dark"] .greet,
+html[data-theme="dark"] .toolbar{position:relative;overflow:hidden}
+html[data-theme="dark"] .kpi .l,
+html[data-theme="dark"] .kpi .v,
+html[data-theme="dark"] .kpi .s,
+html[data-theme="dark"] .kpi .bar{z-index:1}
+html[data-theme="dark"] .kpi > .l::before{content:"";position:absolute;left:-18px;right:-200%;top:-14px;height:46px;background:linear-gradient(180deg,rgba(255,255,255,.09),transparent);pointer-events:none}
+html[data-theme="dark"] .greet::before{content:"";position:absolute;inset:0 0 55% 0;background:linear-gradient(180deg,rgba(255,255,255,.08),transparent);pointer-events:none}
+html[data-theme="dark"] header{background:linear-gradient(120deg,rgba(44,136,69,.42),rgba(63,174,95,.22) 60%,rgba(239,229,184,.10))!important;
+  backdrop-filter:blur(30px) saturate(190%)!important;-webkit-backdrop-filter:blur(30px) saturate(190%)!important;
+  border:1px solid rgba(255,255,255,.18)!important;box-shadow:0 20px 50px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.28)!important}
+html[data-theme="dark"] .weekbox,
+html[data-theme="dark"] .sync,
+html[data-theme="dark"] header .hbtn{background:rgba(255,255,255,.08)!important;border:1px solid rgba(255,255,255,.16)!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.18)}
+html[data-theme="dark"] nav button.on,
+html[data-theme="dark"] .btn.pri,
+html[data-theme="dark"] .daytabs button.on{background:linear-gradient(135deg,rgba(63,174,95,.85),rgba(44,136,69,.65))!important;border:1px solid rgba(255,255,255,.25)!important;box-shadow:0 8px 24px rgba(63,174,95,.35),inset 0 1px 0 rgba(255,255,255,.35)!important}
+html[data-theme="dark"] input.txt,
+html[data-theme="dark"] select.txt,
+html[data-theme="dark"] .btn,
+html[data-theme="dark"] .daytabs button,
+html[data-theme="dark"] .chip,
+html[data-theme="dark"] .greet .gchip{background:rgba(255,255,255,.06)!important;border:1px solid rgba(255,255,255,.13)!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.10)!important;backdrop-filter:blur(10px)}
+html[data-theme="dark"] .btn:hover,
+html[data-theme="dark"] .daytabs button:hover,
+html[data-theme="dark"] .greet .gchip:hover{background:rgba(255,255,255,.12)!important}
+html[data-theme="dark"] .kpi::before{opacity:.9;filter:blur(6px);width:120px;height:120px;right:-34px;top:-34px}
+html[data-theme="dark"] .kpi::after{box-shadow:0 0 14px var(--accent2)}
+html[data-theme="dark"] table.g th,
+html[data-theme="dark"] table.g td{background:rgba(255,255,255,.025)}
+html[data-theme="dark"] table.g thead th{background:rgba(14,30,20,.72)!important;backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px)}
+html[data-theme="dark"] table.g thead th.ord{background:rgba(70,64,34,.70)!important}
+html[data-theme="dark"] table.g thead th.act{background:rgba(24,74,44,.70)!important}
+html[data-theme="dark"] table.g td.ordc{background:rgba(239,229,184,.045)}
+html[data-theme="dark"] table.g td.actc{background:rgba(79,216,138,.05)}
+html[data-theme="dark"] table.g td.stick{background:rgba(14,28,19,.80);backdrop-filter:blur(12px)}
+html[data-theme="dark"] table.g td.tot{background:rgba(255,255,255,.05)}
+html[data-theme="dark"] table.g tbody tr:hover td{background-color:rgba(255,255,255,.06)}
+html[data-theme="dark"] .secrow td{background:linear-gradient(90deg,rgba(63,174,95,.28),rgba(63,174,95,.03))!important}
+html[data-theme="dark"] td[style*="#f8f6e8"]{background:rgba(239,229,184,.07)!important}
+html[data-theme="dark"] th[style*="#f4edcf"]{background:rgba(70,64,34,.72)!important}
+html[data-theme="dark"] .pill{box-shadow:inset 0 1px 0 rgba(255,255,255,.12);backdrop-filter:blur(6px)}
+html[data-theme="dark"] #login{background:
+  radial-gradient(520px 400px at 25% 25%,rgba(63,174,95,.6),transparent 62%),
+  radial-gradient(480px 380px at 78% 72%,rgba(239,229,184,.22),transparent 62%),
+  radial-gradient(420px 360px at 70% 15%,rgba(30,110,140,.35),transparent 62%),
+  linear-gradient(135deg,#0b1d12,#050b07)}
+html[data-theme="dark"] .kpi::before,
+html[data-theme="dark"] .greet::after,
+html[data-theme="dark"] body::before,
+html[data-theme="dark"] body::after{display:none!important;content:none!important}
+html[data-theme="dark"] body{background:linear-gradient(135deg,#0d2617 0%,#0a1a10 30%,#08130d 55%,#0f2a1a 80%,#1a2e1c 100%)!important;background-attachment:fixed!important}
+html[data-theme="dark"] #login{background:linear-gradient(135deg,#1f5a33 0%,#0d2617 40%,#060d09 75%,#1b2a17 100%)!important}
+html[data-theme="dark"] .gridwrap{background:rgba(250,252,248,.94)!important;border:1px solid rgba(255,255,255,.35)!important;box-shadow:0 20px 50px rgba(0,0,0,.45),inset 0 1px 0 rgba(255,255,255,.9)!important}
+html[data-theme="dark"] table.g{color:#18301f}
+html[data-theme="dark"] table.g th,
+html[data-theme="dark"] table.g td{background:#ffffff;border-right:1px solid #e3ebe4;border-bottom:1px solid #e3ebe4}
+html[data-theme="dark"] table.g thead th{background:#f3f7f2!important;color:#3f5a46!important;backdrop-filter:none!important}
+html[data-theme="dark"] table.g thead th.ord{background:#f4edcf!important;color:#6d6224!important}
+html[data-theme="dark"] table.g thead th.act{background:#dcf2e3!important;color:#1f6b34!important}
+html[data-theme="dark"] table.g td.ordc{background:#fbf8ea}
+html[data-theme="dark"] table.g td.actc{background:#f1faf3}
+html[data-theme="dark"] table.g td.stick{background:#ffffff;backdrop-filter:none}
+html[data-theme="dark"] table.g td.tot{background:#f6f9f5}
+html[data-theme="dark"] table.g tbody tr:hover td{background-color:#eef7f0}
+html[data-theme="dark"] table.g tr.sel td{background-color:#dbe8ff!important}
+html[data-theme="dark"] table.g input.cell,
+html[data-theme="dark"] table.g select.cell{color:#18301f;color-scheme:light}
+html[data-theme="dark"] table.g input.cell:focus,
+html[data-theme="dark"] table.g select.cell:focus{background:#fff;box-shadow:inset 0 0 0 2px #2c8845,0 4px 12px rgba(44,136,69,.18)}
+html[data-theme="dark"] table.g input.cell::placeholder{color:#9db3a2}
+html[data-theme="dark"] table.g select.cell option{background:#fff;color:#18301f}
+html[data-theme="dark"] .secrow td{background:linear-gradient(90deg,#d6eedd,#f3faf5)!important;color:#1f6b34!important}
+html[data-theme="dark"] td[style*="#f8f6e8"]{background:#f8f6e8!important}
+html[data-theme="dark"] th[style*="#f4edcf"]{background:#f4edcf!important;color:#1f6b34!important}
+html[data-theme="dark"] table.g .muted,
+html[data-theme="dark"] table.g .sub{color:#5e7363!important}
+html[data-theme="dark"] table.g .pill.p-ok{background:rgba(17,150,87,.12);color:#119657}
+html[data-theme="dark"] table.g .pill.p-late{background:rgba(232,140,20,.14);color:#c46a00}
+html[data-theme="dark"] table.g .pill.p-short{background:rgba(214,51,74,.12);color:#d6334a}
+html[data-theme="dark"] table.g .pill.p-over{background:rgba(47,111,214,.12);color:#2f6fd6}
+html[data-theme="dark"] table.g .pill.p-due{background:rgba(255,205,60,.25);color:#8a6100}
+html[data-theme="dark"] table.g .pill.p-sch{background:rgba(120,110,100,.10);color:#5e7363}
+html[data-theme="dark"] table.g .flag{background:rgba(214,51,74,.12);color:#d6334a}
+html[data-theme="dark"] table.g .flag.w{background:rgba(232,140,20,.14);color:#c46a00}
+html[data-theme="dark"] table.g .tag{background:rgba(120,110,100,.10);color:#3f5a46}
+html[data-theme="dark"] table.g .tag.mfi{background:rgba(47,111,214,.12);color:#2f6fd6}
+html[data-theme="dark"] table.g .tag.om{background:rgba(232,140,20,.14);color:#c46a00}
+html[data-theme="dark"] table.g .tag.dir{background:rgba(17,150,87,.12);color:#119657}
+html[data-theme="dark"] table.g td[style*="var(--bad)"]{color:#d6334a!important}
+html[data-theme="dark"] table.g td[style*="var(--ok)"]{color:#119657!important}
+html[data-theme="dark"] table.g .btn{background:#fff!important;color:#18301f!important;border:1px solid #d7e3da!important}
+html[data-theme="dark"] table.g input[type=checkbox]{accent-color:#2c8845}
+html[data-theme="dark"]{color-scheme:dark}
+html[data-theme="dark"] .gridwrap{color-scheme:light}
+.themebtn{font-size:15px;line-height:1;padding:6px 10px!important}
+</style>
+</head>
+<body>
+
+<!-- ============ LOGIN ============ -->
+<div id="login" class="hidden">
+  <div class="box">
+    <div class="logo" style="color:var(--brand)">
+      <svg width="42" height="42" viewBox="0 0 64 64" aria-label="Barn Delivery Tracker logo"><defs><linearGradient id="gL1" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#3fae5f"/><stop offset="1" stop-color="#1f6b34"/></linearGradient><linearGradient id="hL1" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".32"/><stop offset=".5" stop-color="#fff" stop-opacity="0"/></linearGradient></defs><rect x="2" y="2" width="60" height="60" rx="16" fill="url(#gL1)"/><rect x="2" y="2" width="60" height="60" rx="16" fill="url(#hL1)"/><path d="M9 30 L32 12 L55 30" fill="none" stroke="#f4edcf" stroke-width="4.4" stroke-linecap="round" stroke-linejoin="round"/><text x="32" y="45" text-anchor="middle" font-family="Plus Jakarta Sans,Arial Black,Arial,sans-serif" font-weight="800" font-size="15.5" fill="#fff" letter-spacing="1">BARN</text><rect x="17" y="49" width="30" height="3" rx="1.5" fill="#e8a33a"/></svg>
+    </div>
+    <h2>Barn Daily Delivery Tracker</h2>
+    <p>Sign in with the same account you use for Receiving Monitoring and the AP Tracker.</p>
+    <input id="lgEmail" type="email" placeholder="Email" autocomplete="username">
+    <input id="lgPass" type="password" placeholder="Password" autocomplete="current-password">
+    <button class="btn pri" id="lgBtn">Sign in</button>
+    <button class="btn" id="lgLink">Email me a sign-in link</button>
+    <button class="btn" id="lgLocal" title="Data stays in this browser only">Use offline (this computer only)</button>
+    <div class="msg" id="lgMsg"></div>
+  </div>
+</div>
+
+<!-- ============ HEADER ============ -->
+<header>
+  <div class="logo">
+    <svg width="36" height="36" viewBox="0 0 64 64" aria-label="Barn Delivery Tracker logo"><defs><linearGradient id="gL2" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#3fae5f"/><stop offset="1" stop-color="#1f6b34"/></linearGradient><linearGradient id="hL2" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".32"/><stop offset=".5" stop-color="#fff" stop-opacity="0"/></linearGradient></defs><rect x="2" y="2" width="60" height="60" rx="16" fill="url(#gL2)"/><rect x="2" y="2" width="60" height="60" rx="16" fill="url(#hL2)"/><path d="M9 30 L32 12 L55 30" fill="none" stroke="#f4edcf" stroke-width="4.4" stroke-linecap="round" stroke-linejoin="round"/><text x="32" y="45" text-anchor="middle" font-family="Plus Jakarta Sans,Arial Black,Arial,sans-serif" font-weight="800" font-size="15.5" fill="#fff" letter-spacing="1">BARN</text><rect x="17" y="49" width="30" height="3" rx="1.5" fill="#e8a33a"/></svg>
+    <div>BARN Daily Delivery Tracker<small>Eight8Ate · Purchasing</small></div>
+  </div>
+  <div class="weekbox">
+    <button id="wkPrev" title="Previous week">‹</button>
+    <div><div class="wk" id="wkLbl">WK --</div></div>
+    <button id="wkNext" title="Next week">›</button>
+    <span class="rng" id="wkRng"></span>
+    <input type="date" id="wkPick" title="Jump to a date">
+    <button id="wkToday" title="This week" style="font-size:12px">Today</button>
+  </div>
+  <div class="spacer"></div>
+  <div class="sync"><span class="dot off" id="syncDot"></span><span id="syncTxt">—</span></div>
+  <button class="hbtn themebtn" id="btnTheme" title="Switch light / dark">🌙</button>
+  <button class="hbtn" id="btnOut">Sign out</button>
+</header>
+
+<nav id="tabs">
+  <button data-v="today" class="on"><span class="ico">☀️</span>Today</button>
+  <button data-v="grid"><span class="ico">🗓️</span>Weekly Schedule</button>
+  <button data-v="summary"><span class="ico">📊</span>Supplier Summary</button>
+  <button data-v="alerts"><span class="ico">🔔</span>Alerts <span class="badge zero" id="alertBadge">0</span></button>
+  <button data-v="master"><span class="ico">📦</span>Master List</button>
+  <button data-v="settings"><span class="ico">⚙️</span>Settings</button>
+</nav>
+
+<main>
+  <div class="greet" id="greet"></div>
+  <!-- ============ TODAY ============ -->
+  <section class="view on" id="v-today">
+    <div class="kpis" id="todayKpis"></div>
+    <div class="toolbar">
+      <div class="daytabs" id="dayTabs"></div>
+      <div class="sep"></div>
+      <input class="txt" id="tdSearch" placeholder="Search supplier / item / PO" style="width:220px">
+      <select class="txt" id="tdStatus">
+        <option value="">All statuses</option><option value="open">Not yet complete</option><option>Short</option><option>Due today</option><option>Late</option><option>Complete</option><option>Over</option>
+      </select>
+      <label class="chk"><input type="checkbox" id="tdCarry" checked> Include backlog from earlier days</label>
+    </div>
+    <div class="gridwrap" style="max-height:calc(100vh - 290px)"><table class="g" id="todayTbl"></table></div>
+  </section>
+
+  <!-- ============ WEEKLY GRID ============ -->
+  <section class="view" id="v-grid">
+    <div class="kpis" id="gridKpis"></div>
+    <div class="toolbar">
+      <div class="grp">
+        <button class="btn pri" id="btnAddMaster">+ Add from Master</button>
+        <button class="btn" id="btnAddBlank">+ Blank line</button>
+        <button class="btn" id="btnRoll" title="Copy last week's lines into this week">⟳ Roll over from last week</button>
+      </div>
+      <div class="sep"></div>
+      <input class="txt" id="gSearch" placeholder="Search supplier / item / PO" style="width:200px">
+      <select class="txt" id="gSupplier"><option value="">All suppliers</option></select>
+      <select class="txt" id="gRoute"><option value="">All sourcing</option></select>
+      <select class="txt" id="gStatus"><option value="">All statuses</option><option>Short</option><option>Late</option><option>Due today</option><option>Scheduled</option><option>Complete</option><option>Over</option><option>No order</option></select>
+      <label class="chk"><input type="checkbox" id="gOnlyOrd"> Only lines with orders</label>
+      <label class="chk"><input type="checkbox" id="gGroup" checked> Group by supplier</label>
+      <div class="sep"></div>
+      <span class="muted">Show actual at:</span><span id="gLocToggles" class="grp"></span>
+      <div class="spacer"></div>
+      <button class="btn danger" id="btnDelSel" disabled>Delete selected</button>
+      <button class="btn" id="btnExport" title="BARN DELIVERY SCHEDULE format">⬇ Export Barn Schedule</button>
+      <button class="btn" onclick="window.print()">Print</button>
+    </div>
+    <div class="gridwrap"><table class="g" id="grid"></table></div>
+  </section>
+
+  <!-- ============ SUMMARY ============ -->
+  <section class="view" id="v-summary">
+    <div class="kpis" id="sumKpis"></div>
+    <div class="toolbar">
+      <span class="muted">Period:</span>
+      <select class="txt" id="sumPeriod"><option value="1">This week</option><option value="4">Last 4 weeks</option><option value="8">Last 8 weeks</option><option value="13">Last 13 weeks</option></select>
+      <span class="muted">Fill-rate target: <b id="sumTarget"></b></span>
+      <div class="spacer"></div>
+      <button class="btn" id="btnExportSum">⬇ Export summary</button>
+    </div>
+    <div class="panel"><h3>Fill rate by supplier</h3><div style="overflow:auto;max-height:520px"><table class="s" id="sumSup"></table></div></div>
+    <div class="cols">
+      <div class="panel"><h3>By sourcing route</h3><table class="s" id="sumRoute"></table></div>
+      <div class="panel"><h3>By receiving point</h3><table class="s" id="sumLoc"></table></div>
+    </div>
+    <div class="panel"><h3>Weekly trend</h3><table class="s" id="sumTrend"></table></div>
+  </section>
+
+  <!-- ============ ALERTS ============ -->
+  <section class="view" id="v-alerts">
+    <div class="toolbar"><span class="muted">Alerts for the selected week. Click a row to open it in the Weekly Schedule.</span></div>
+    <div id="alertBody"></div>
+  </section>
+
+  <!-- ============ MASTER ============ -->
+  <section class="view" id="v-master">
+    <div class="toolbar">
+      <input class="txt" id="mSearch" placeholder="Search code / description / supplier" style="width:260px">
+      <select class="txt" id="mRoute"><option value="">All sourcing</option></select>
+      <select class="txt" id="mGroup"><option value="">All groups</option><option>Common</option><option>Exclusive</option><option value="-">(blank)</option></select>
+      <label class="chk"><input type="checkbox" id="mNA"> Only #N/A new code</label>
+      <label class="chk"><input type="checkbox" id="mNoPrice"> Only no price</label>
+      <div class="spacer"></div>
+      <span class="muted" id="mCount"></span>
+      <button class="btn" id="btnMAdd">+ Item</button>
+      <label class="btn">⬆ Import Excel/CSV<input type="file" id="mFile" accept=".xlsx,.xls,.csv" hidden></label>
+      <button class="btn" id="btnMExport">⬇ Export</button>
+    </div>
+    <div class="gridwrap"><table class="g" id="mTbl"></table></div>
+  </section>
+
+  <!-- ============ SETTINGS ============ -->
+  <section class="view" id="v-settings">
+    <div class="cols">
+      <div class="panel">
+        <h3>Receiving points (actual-delivery columns)</h3>
+        <div class="muted">Each point gets its own Mon–Sat actual-delivery block in the Weekly Schedule.</div>
+        <div class="locchips" id="locChips"></div>
+        <div class="grp" style="display:flex;gap:6px"><input class="txt" id="locNew" placeholder="e.g. VETERANS"><button class="btn" id="locAdd">Add</button></div>
+      </div>
+      <div class="panel">
+        <h3>Delivery locations (ordered "Delivery Location" list)</h3>
+        <div class="locchips" id="dlocChips"></div>
+        <div class="grp" style="display:flex;gap:6px"><input class="txt" id="dlocNew" placeholder="e.g. SAFEXPRESS"><button class="btn" id="dlocAdd">Add</button></div>
+      </div>
+      <div class="panel">
+        <h3>Alert rules</h3>
+        <div class="form" style="grid-template-columns:1fr 1fr">
+          <label>Weekly fill-rate target (%)<input class="txt" type="number" id="setTarget" min="1" max="100"></label>
+          <label style="grid-column:span 2">Your name (for the greeting)<input class="txt" id="setName" placeholder="e.g. Hezon"></label>
+          <label>Theme<select class="txt" id="setTheme"><option value="">Auto (follow computer)</option><option value="light">Light</option><option value="dark">Dark</option></select></label>
+          <label>Delivery days<select class="txt" id="setDays"><option value="6">Mon – Sat</option><option value="7">Mon – Sun</option><option value="5">Mon – Fri</option></select></label>
+        </div>
+        <p class="muted" style="margin:10px 0 0">
+          <b>Short</b> = an order day has passed and less than the ordered qty has arrived (counted cumulatively, so a late top-up clears it).<br>
+          <b>Late</b> = the full qty arrived, but after the scheduled day.<br>
+          <b>Over</b> = more delivered than ordered for the week.<br>
+          <b>Below target</b> = weekly fill rate under the target above.
+        </p>
+      </div>
+      <div class="panel">
+        <h3>Data</h3>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn" id="btnBackup">⬇ Full backup (JSON)</button>
+          <label class="btn">⬆ Restore backup<input type="file" id="restoreFile" accept=".json" hidden></label>
+          <button class="btn" id="btnReseed">Reload Barn master list (original)</button>
+        </div>
+        <p class="muted" id="dataInfo" style="margin:10px 0 0"></p>
+      </div>
+    </div>
+  </section>
+</main>
+
+<div id="modalRoot"></div>
+
+<script>
+/* =====================================================================
+   CONFIG
+   ===================================================================== */
+const SUPA_URL = "https://zznwwjwrfgbinxbfztby.supabase.co";
+const SUPA_KEY = "sb_publishable_Tr6B_bDbxlgG0FY_wGRLjg_64CY6fhK";
+const TABLE = "dt_docs";
+const SCHEDULE = "BARN";
+const DAYNAMES = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
+/* Master list seed: [supplier, itemCode, itemDesc, newCode, newDesc, uom, price, group, sourcing, notes, openMarketPrice] */
+const MASTER_SEED = [["ALTERNATIVES FOOD CORPORATION","RMFD00110180006","Beef Chuck Ground- - by Kg","RMFD010002","Beef Chuck Ground","Kg",800,"Exclusive","SUPPLIER CAN DIRECT DELIVERY TO BARN","",""],["MIDA FOOD DISTRIBUTORS INC","RMFD00400100013","Mussels Black Whole-Pacific Bay-1KG - - by Pack","RMFD010125","Mussels Black Whole","Pack",260,"Exclusive","SUPPLIER CAN DIRECT DELIVERY TO BARN","with MOQ worth 15k",""],["DIMENSION DISTRIBUTORS INC","RMFD01510030007","Crab Stick - Kibun - - 250 G / Pack","#N/A","#N/A","Pack",97,"Exclusive","OPEN MARKET","with MOQ 1 case per 20 packs / or Open Market usually order is 4 packs",""],["MULTI-M FOOD CORPORATION","RMFD00500190016","French Fries - Mc Cain - - 2.2KG / Pack","#N/A","#N/A","Pack","","Exclusive","for SO - Wendy's","Simplot brand",""],["ADEFOOD PRODUCTS INC.","RMFD00500990002","Kimchi Korean - ADE - 820 G / Bottle","RMFD150041","Korean Kimchi","Bottle",300,"","COD","with MOQ worth 20k , train schedule every end of the month",""],["GOLDEN CHILL MARKETING CO.","RMFD00710060003","Nestle Sour Cream - - 240gram / Tub","RMFD030096","Sour Cream","Tub",150,"Exclusive","COMING FROM MFI","with MOQ 67 pcs",""],["WERDENBERG INTERNATIONAL CORP.","RMFD01910030010","Filo Pastry Frozen-Antoniou-375G - - by Box","RMFD150071","Filo Patry Frozen","Box",360,"Exclusive","COMING FROM MFI","no branches or distributors in pampanga",""],["SILVERWAVE CORPORATION","RMFD01910030010","Filo Pastry Frozen-Antoniou-375G - - by Box","RMFD150071","Filo Patry Frozen","Box",223.5,"Exclusive","COMING FROM MFI","no branches or distributors in pampanga",""],["DIMAX FOOD WHOLESALING","RMFD00910170003","Century Bangus Belly-280G/Pack - - by Pack","#N/A","#N/A","Pack",275.29,"Exclusive","OPEN MARKET","",""],["FOODZONE INC","RMFD00910170003","Century Bangus Belly-280G/Pack - - by Pack","#N/A","#N/A","Pack",238.42,"Exclusive","OPEN MARKET","",""],["MANILA BAMBI FOODS","RMFD01900050015","Tortilla Chips ( Casa De Tortilla )500g/Pack","#N/A","#N/A","Pack",140,"Exclusive","COD","4 consecutive COD then for approval ng terms",""],["MCCORMICK PHILS INC","RMFD00810130001","Paprika Spanish - Mc Cormick - 1 KG / Pack","RMFD060004","Spanish Paprika","Pack",791.66,"Common","COMING FROM MFI","",""],["TIP TOP DISTRIBUTION, INC.","RMFD00810130001","Paprika Spanish - Mc Cormick - 1 KG / Pack","RMFD060004","Spanish Paprika","Pack",831.19,"Common","COMING FROM MFI","",""],["MSCS PRIMEGOODS, INC.","RMFD00810130001","Paprika Spanish - Mc Cormick - 1 KG / Pack","RMFD060004","Spanish Paprika","Pack",791.66,"Common","COMING FROM MFI","",""],["ESPA-FIL IMPORT & EXPORT CORP.","RMFD01100140021","Balsamic Glaze- Capri-250ML - - by Bottle","RMFD080109","Balsamic Glaze","Bottle",198.5,"Exclusive","OPEN MARKET","",""],["MCCORMICK PHILS INC","RMFD00810140013","Ginger Ground - Mc Cormick - 1 KG / Pack","#N/A","#N/A","Pack",1401.266,"Common","COMING FROM MFI","for SO",""],["MCCORMICK PHILS INC","RMFD00810100001","Nutmeg Ground - Mc Cormick - 1 KG / Pack","RMFD060023","Nutmeg Ground","Pack",3878.52,"Common","COMING FROM MFI","for SO",""],["TIP TOP DISTRIBUTION, INC.","RMFD00810100001","Nutmeg Ground - Mc Cormick - 1 KG / Pack","RMFD060023","Nutmeg Ground","Pack",4072.52,"Common","COMING FROM MFI","for SO",""],["MSCS PRIMEGOODS, INC.","RMFD00810100001","Nutmeg Ground - Mc Cormick - 1 KG / Pack","RMFD060023","Nutmeg Ground","Pack",3878.52,"Common","COMING FROM MFI","for SO",""],["MCCORMICK PHILS INC","RMFD00810050001","Cinnamon Ground - Mc Cormick - 1 KG / Pack","#N/A","#N/A","Pack",911.982,"Common","COMING FROM MFI","for SO",""],["TIP TOP DISTRIBUTION, INC.","RMFD00810050001","Cinnamon Ground - Mc Cormick - 1 KG / Pack","#N/A","#N/A","Pack",911.982,"Common","COMING FROM MFI","for SO",""],["TIP TOP DISTRIBUTION, INC.","RMFD00510350004","Celery Seed Ground - McCormick - - 1 Kg / Pack","RMFD060025","Celery Powder","Pack",587.71,"Common","COMING FROM MFI","for SO",""],["LANDMARK SUPERMARKET","RMFD00810260002","Curry Powder- Mc Cormick- 480g/Bottle","#N/A","#N/A","Bottle",493.25,"Exclusive","OPEN MARKET","",""],["MCCORMICK PHILS INC","RMFD00810120002","Oregano Leaves Ground - Mc Cormick - 25g / Pack","#N/A","#N/A","Pack",1436.926,"Common","COMING FROM MFI","for SO switch to alt of 1kg",""],["SOUTHSTAR DISTRIBUTORS, INC.","RMFD00810190011","Knorr Aromat 1kg / pack - - by Pack","RMFD060028","Aromat","Pack",452.25,"Exclusive","COMING FROM MFI","",""],["CFTRI DISTRIBUTION CORPORATION","RMFD00810190011","Knorr Aromat 1kg / pack - - by Pack","RMFD060028","Aromat","Pack",473.72,"Exclusive","DIRECT SUPPLIER AT BARN","onhold",""],["SOUTHSTAR DISTRIBUTORS, INC.","RMFD00610210015","Crispy Breading Mix - Knorr- 1Kg/Pack - - by Pack","RMFD060029","Chicken Breading Mix","Pack",313.65,"Exclusive","OPEN MARKET","",""],["CFTRI DISTRIBUTION CORPORATION","RMFD00610210015","Crispy Breading Mix - Knorr- 1Kg/Pack - - by Pack","RMFD060029","Chicken Breading Mix","Pack",405.9,"Exclusive","DIRECT SUPPLIER AT BARN","",""],["SOUTHSTAR DISTRIBUTORS, INC.","RMFD00810040016","Broth Powder Beef - Knorr - 1 KG / Pack","RMFD060099","Broth Beef Powder 1","Pack",433.38,"Common","COMING FROM MFI","for SO",""],["S & R","RMBV00400040012","Maple Syrup- Mrs Butterworths- 1.89L/Gal - - by Gal","RMFD080054","Maple Syrup","Bottle",422.95,"Exclusive","OPEN MARKET","alt of 710g",""],["","RMFD00810260003","Paste Red Curry- Real Thai- 227g/ Bottle","RMFD060020","Paste Red Curry","Bottle",131,"Exclusive","OPEN MARKET","",""],["","RMFD00500990004","Maell Gochujang -Korean Hot Pepper paste - 500grams / Canister","#N/A","#N/A","Canister",217.75,"Exclusive","OPEN MARKET","supplier(nextrade with MOQ 1 case per case 20 canister)",""],["S & R","RMFD00910130014","Vlasic Kosher Dill 1.36L  - -by Bottle","RMFD080055","Kosher Dill","Bottle",349,"Exclusive","OPEN MARKET","",""],["MCCORMICK PHILS INC","RMFD00810070001","Garlic Powder - Mc Cormick - 1 KG / Pack","RMFD060031","Garlic Powder","Pack",877.76,"Common","COMING FROM MFI","for SO",""],["NEXTRADE PHILIPPINE, INC","RMFD00810090003","Nori Flakes Original-Kimnori-40G - - by Pack","RMFD150042","Nori Flakes Original","Pack",138,"Exclusive","OPEN MARKET","supplier(nextrade with MOQ 1 case per case 20 packs)",""],["STR8 LINE PALM, INC.","RMFD00600080013","Bonito flakes 500g ---packs","RMFD150032","Bonito Flakes","Pack",1350,"Exclusive","COMING FROM MFI","usually order is 1 pack only",""],["ESPA-FIL IMPORT & EXPORT CORP.","RMFD00910100002","Olives Green With Pimiento - Capri - 340 G / Bottle","RMFD080124","Olives Green with Pimiento 1","Bottle",347.8,"Common","COMING FROM MFI","for SO swtch to alternative 935g",""],["","RMFD00600080012","Pretzels Thins- Rold Gold- 285G/Pack - - by Pack","RMFD150072","Pretzels Thins","Pack","","Exclusive","OPEN MARKET","",""],["BOTTOMZ UP CONVENIENCE STORE INC.","RMBV00100030013","Still Water-Summit 330ml - - by Bottle","RMBV010007","Still Water","Bottle",45,"Exclusive","DIRECT SUPPLIER AT BARN","",""],["BOTTOMZ UP CONVENIENCE STORE INC.","RMBV00100030014","Sparkling Water- Perrier 330ml - - by Bottle","#N/A","#N/A","Bottle",45,"Exclusive","DIRECT SUPPLIER AT BARN","",""],["DLA NATURALS, INC.","RMBV00400040011","DLA Ube Syrup 750ML - - by Bottle","RMBV030015","DLA Ube Syrup","Bottle",385,"Common","COMING FROM MFI","for SO",""],["GLOBAL PACIFIC DISTRIBUTION NETWORK CORP.","RMBV00400040011","DLA Ube Syrup 750ML - - by Bottle","RMBV030015","DLA Ube Syrup","Bottle",450,"Common","COMING FROM MFI","for SO",""],["TRIPLE ASL ENTERPRISE","RMBV00400040011","DLA Ube Syrup 750ML - - by Bottle","RMBV030015","DLA Ube Syrup","Bottle",465,"Common","COMING FROM MFI","for SO",""],["CFTRI DISTRIBUTION CORPORATION","RMFD01110010018","Catsup Tomato - Del Monte - 1 KG / Pack","RMFD080118","Catsup Tomato 1","Pack",69.31,"Exclusive","DIRECT SUPPLIER AT BARN","onhold",""],["MSCS PRIMEGOODS, INC.","RMFD01110150002","Worcestershire Sauce - Lea & Perrins - 150 ML / Bottle","#N/A","#N/A","Bottle",142.77,"Common","COMING FROM MFI","for SO",""],["MSCS PRIMEGOODS, INC.","RMFD01110100001","Steak Sauce - A1 - 10 OZ / Bottle","RMFD080056","Steak Sauce","Bottle",288.15,"Common","COMING FROM MFI","for SO",""],["KLG INTERNATIONAL INC. - FOODSERVICE DIVISION","RMFD01110010018","Catsup Tomato - Del Monte - 1 KG / Pack","RMFD080118","Catsup Tomato 1","Pack",80.1,"Exclusive","COMING FROM MFI","for SO",""],["FERNA CORPORATION","RMFD01710020003","Food Color Red - Ferna Liquid - 30 ML / Bottle","RMFD080046","Food Color, Red","Bottle",32,"Common","COMING FROM MFI","for SO",""],["SUPER SHOPPING MARKET INC. - FTI","RMFD01710020027","Food Color Blue - Ferna Liquid - - 30ml / Bottle","RMFD080051","Food Color, Blue","Bottle",36.5,"Exclusive","OPEN MARKET","",""],["WERDENBERG INTERNATIONAL CORP.","RMFD01810050004","Dijon Edmond Fallot - 850 G / Bottle","RMFD080108","Dijon Edmond Fallot","Bottle",550,"Exclusive","","for validation",""],["","RMFD00910130007","Pickle Relish - Ram - 270g / Bottle","#N/A","#N/A","Bottle",900,"Common","COMING FROM MFI","for SO switch to alt of 1GAL",""],["CONCEPT SPECIALIST, INC.","RMFD01700040016","SHOTT Banana Syrup 1Ltr / Bottle","RMBV030014","Banana sauce","Bottle",712,"Common","COMING FROM MFI","for SO",""],["S & R","RMBV00100060009","Absolut Vodka 700ml / Bottle","RMBV040005","Absolut Vodka 700ml / Bottle","Bottle",629,"Exclusive","OPEN MARKET","",""],["S & R","","Absolut Vodka 1000ml / Bottle","RMFD050019","Soya oil 1","Bottle","","","","",""],["S & R","RMBV00100060006","Cointreau Triple Sec Liqeur 750ml / Bottle","RMBV040006","Cointreau Triple Sec Liqeur 750ml / Bottle","Bottle",1389,"Exclusive","OPEN MARKET","",""],["S & R","RMFD02010090008","Liqueur Kahlua - Licor Delicioso - 700 ML / Bottle","RMBV040007","Liqueur Kahlua - Licor Delicioso - 700 ML / Bottle","Bottle",739,"Exclusive","OPEN MARKET","",""],["BOTTOMZ UP CONVENIENCE STORE INC.","RMBV00100060039","Bacardi-White Rhum 750ml - - by Bottle","RMBV040008","Bacardi White 750ml","Bottle",686,"Exclusive","DIRECT SUPPLIER AT BARN","",""],["LANDMARK SUPERMARKET","RMBV00100060010","Bacardi Dark Rum 750ml / Bottle","RMBV040009","Bacardi Dark Rum 750ml / Bottle","Bottle",983.25,"Exclusive","FOR SOURCING","direct supplier",""],["LANDMARK SUPERMARKET","RMBV00100060007","Maker's Mark Bourbon Whisky 750ml / Bottle","RMBV040010","Maker's Mark Bourbon Whisky 750ml / Bottle","Bottle",1999,"Exclusive","FOR SOURCING","direct supplier",""],["S & R","RMBV00100060008","Monkey Shoulder Scotch Whisky 700ml / Bottle","RMBV040011","Monkey Shoulder Scotch Whisky 700ml / Bottle","Bottle",1865,"Exclusive","OPEN MARKET","",""],["LANDMARK SUPERMARKET","RMBV00100060005","Jose Quervo Gold Especial Tequila 700ml / Bottle","RMBV040012","Jose Quervo Gold Especial Tequila 700ml / Bottle","Bottle",849,"Exclusive","FOR SOURCING","direct supplier",""],["LANDMARK SUPERMARKET","RMBV00100060012","Martini Rosso Sweet Vermouth 1L / Bottle","RMBV040013","Martini Rosso Sweet Vermouth 1L / Bottle","Bottle",960.25,"Exclusive","FOR SOURCING","direct supplier",""],["","RMBV00100060011","Martini Rosso Extra Dry 1L / Bottle","RMBV040014","Martini Rosso Extra Dry 1L / Bottle","Bottle","","Exclusive","FOR SOURCING","direct supplier",""],["S & R","RMBV00100060015","Campari Aperitivo Bitter 700ml / Bottle","RMBV040015","Campari Aperitivo Bitter 700ml / Bottle","Bottle",1149,"Exclusive","FOR SOURCING","direct supplier",""],["S & R","RMBV00100060016","Aperol Aperitivo 700ml / Bottle","RMBV040016","Aperol Aperitivo 700ml / Bottle","Bottle",949,"Exclusive","FOR SOURCING","direct supplier",""],["S & R","RMBV00100060002","Tanqueray London Gin 750ml / Bottle","RMBV040017","Tanqueray London Gin 750ml / Bottle","Bottle",799,"Exclusive","FOR SOURCING","direct supplier",""],["S & R","RMBV00100060001","Disaronno 700ML / Bottle","RMBV040018","Disaronno 700ML / Bottle","Bottle",904,"Exclusive","FOR SOURCING","direct supplier",""],["S & R","RMBV00100060030","Angostura Bitters Cocoa Bitters 118ml 4oz / Bottle","RMBV040019","Angostura Bitters Cocoa Bitters 118ml 4oz / Bottle","Bottle",2099,"Exclusive","FOR SOURCING","direct supplier",""],["","RMBV00100060031","Angostura Bitters Orange Bitters 118Ml 4Oz - - by Bottle","RMBV040020","Angostura Bitters Orange Bitters 118Ml 4Oz - - by Bottle","Bottle","","Exclusive","FOR SOURCING","direct supplier",""],["","","Angostura aromatic bitters","RMFD050019","Soya oil 1","Bottle","","Exclusive","FOR SOURCING","direct supplier",""],["LANDMARK SUPERMARKET","RMBV00100060038","Corona Extra 330 Ml - - by Bottle","RMBV040022","Corona Extra 330 Ml - - by Bottle","Bottle",55,"Exclusive","FOR SOURCING","direct supplier",""],["BOTTOMZ UP CONVENIENCE STORE INC.","RMBV00100060037","Engkanto Pale Ale-330Ml - - by Bottle","RMBV040023","Engkanto Pale Ale-330Ml - - by Bottle","Bottle",105,"Exclusive","DIRECT SUPPLIER AT BARN","",""],["BOTTOMZ UP CONVENIENCE STORE INC.","RMBV00100060034","San Miguel Pale 330Ml - - by Bottle","#N/A","#N/A","Bottle",39.17,"Exclusive","DIRECT SUPPLIER AT BARN","",""],["BOTTOMZ UP CONVENIENCE STORE INC.","RMBV00100060035","San Miguel Light 330Ml - - by Bottle","#N/A","#N/A","Bottle",44.58,"Exclusive","DIRECT SUPPLIER AT BARN","",""],["S & R","RMBV00100060036","Stella Artois 330Ml - - by Bottle","RMBV040026","Stella Artois 330Ml - - by Bottle","Bottle",614,"Exclusive","FOR SOURCING","direct supplier",""],["","","Ceres Orange Juices 1L","RMFD050019","Soya oil 1","Tetra","","Exclusive","OPEN MARKET","",""],["WINEHUB INC.","RMBV00100060019","Gufo Merlot Vino (Red) Varietale d'Italia 150 ml /Bottle","RMBV040003","Gufo Merlot Vino (Red) Varietale d'Italia 150 ml /Bottle","Bottle",390,"Exclusive","SUPPLIER CAN DIRECT DELIVERY TO BARN","",""],["WINEHUB INC.","RMBV00100060020","Gufo Chardonnay (White) Vino Varietale d'Italia 150 ml / Bottle","RMBV040004","Gufo Chardonnay (White) Vino Varietale d'Italia 150 ml / Bottle","Bottle",390,"Exclusive","SUPPLIER CAN DIRECT DELIVERY TO BARN","",""],["WINEHUB INC.","RMBV00100060021","Suntana Cabernet Sauvignon 750ml / Bottle","RMBV040032","Suntana Cabernet Sauvignon 750ml / Bottle","Bottle",490,"Exclusive","SUPPLIER CAN DIRECT DELIVERY TO BARN","",""],["WINEHUB INC.","RMBV00100060022","Suntana Sauvignon Blanc  750ml / Bottle","RMBV040033","Suntana Sauvignon Blanc 750ml / Bottle","Bottle",490,"Exclusive","SUPPLIER CAN DIRECT DELIVERY TO BARN","",""],["WINEHUB INC.","RMBV00100060023","Rocca Ventosa Cerasuolo d'Abruzzo DOP 750ml /Bottle","RMBV040035","Rocca Ventosa Cerasuolo d'Abruzzo DOP 750ml /Bottle","Bottle",450,"Exclusive","SUPPLIER CAN DIRECT DELIVERY TO BARN","",""],["WINEHUB INC.","RMBV00100060024","Brilla Moscabo Spumante 750ml / Bottle","RMBV040034","Brilla Moscabo Spumante 750ml / Bottle","Bottle",700,"Exclusive","SUPPLIER CAN DIRECT DELIVERY TO BARN","",""],["WINEHUB INC.","RMBV00100060026","Ca Del Cino Prosecco DOC 750ml / Bottle","RMBV040027","Ca Del Cino Prosecco DOC 750ml / Bottle","Bottle",550,"Exclusive","SUPPLIER CAN DIRECT DELIVERY TO BARN","",""],["WINEHUB INC.","RMBV00100060028","BIB 3L Vino Rosso (Red) Tempranillo - - by Bottle","RMBV040028","BIB 3L Vino Rosso (Red) Tempranillo - - by Bottle","Bottle",980,"Exclusive","SUPPLIER CAN DIRECT DELIVERY TO BARN","",""],["WINEHUB INC.","RMBV00100060029","BIB 5L Vino Blanco (White) Tempranillo - - by Bottl","#N/A","#N/A","Bottle",1680,"Exclusive","SUPPLIER CAN DIRECT DELIVERY TO BARN","",""],["BESTERM INTERNATIONAL CORPORATION","RMBV00210060019","Catcher Gourmet Bellagio Chocolate 1Kg - - by Pack","RMFD070014","Chocolate Powder, Bellagio","Pack",680,"Exclusive","COMING FROM MFI","",""],["PROKRATE INTERNATIONAL TRADING CORPORATION","RMBV00210060019","Catcher Gourmet Bellagio Chocolate 1Kg - - by Pack","RMFD070014","Chocolate Powder, Bellagio","Pack",790,"Exclusive","SUPPLIER CAN DIRECT DELIVERY TO BARN","",""],["PRIME FOODLAB INNOVATION INC.","RMFD01900020026","Kouign Amann--By Pack","RMFD040036","Kouign Amann","Pack",336,"Exclusive","COMING FROM MFI","delivery at MSL",""],["PRIME FOODLAB INNOVATION INC.","RMFD01900020025","Plain Croissant--By Pack","RMFD040034","Plain Croissant","Pack",360,"Exclusive","COMING FROM MFI","delivery at MSL",""],["PRIME FOODLAB INNOVATION INC.","RMFD01900020027","Pain Au Chocolat--by Pack","RMFD040035","Pain Au Chocolat","Pack",405,"Exclusive","COMING FROM MFI","delivery at MSL",""],["PRIME FOODLAB INNOVATION INC.","RMFD01900020028","Cinnamon Roll--By Pack","RMFD040037","Cinnamon Roll","Pack",336,"Exclusive","COMING FROM MFI","delivery at MSL",""],["MAGNOLIA INC.","RMFD00710020053","Cream Cheese-Magnolia-225g/Bar","RMFD030093","Cream Cheese","Bar",148.58,"Exclusive","COMING FROM MFI","delivery at MSL",""],["HEALTHY TOP HARVEST DISTRIBUTION (HTHD) INC.","RMFD00610050023","Acai Unsweetened Sambazon - 100G/Pack - - by Pack","#N/A","#N/A","Pack",72.25,"Common","COMING FROM MFI","for SO",""],["NUTY NUTY PHILIPPINES CORP.","RMFD00510770002","Avocado Diced Frozen - Simplot - 908 G / Pack","RMFD150075","Avocado Diced Frozen","Pack",695,"Common","COMING FROM MFI","for SO",""],["FINEFOOD INDUSTRY CORPORATION","RMFD00510470006","Strawberry Frozen - - 1 KG / Pack","RMFD150005","Strawberries Frozen","Pack",130,"Common","COMING FROM MFI","for SO",""],["MAGNOLIA INC.","RMFD00710040013","Vanilla Ice Cream - Gold Label - Magnolia - - 1.3 L / Tub","RMFD030034","Ice Cream, Vanilla","Tub",268.2,"Common","COMING FROM MFI","for SO",""],["ZENELLA FOOD TRADING","RMFD01810010005","Cranberry Dried - - 1 KG / Pack","RMFD090036","Cranberry Dried - 1 Kg / Pack","Pack",540,"Common","COMING FROM MFI","for SO - Wendys",""],["","","Pitted Dates 1KG--by Pack","RMFD050019","Soya oil 1","Pack","","Common","COMING FROM MFI","repack - for re -SO",""],["ORGANIKO BEVERAGE SHOP","RMDC00100040011","Dried Rose Petals 100G - - by Pack","RMFD150024","Dried Rose Petals 2","Pack",190,"Common","COMING FROM MFI","for SO",""],["CLE ACE CORPORATION","RMFD00610240001","Biscoff Cookie - Lotus - 250 G / Pack","RMFD080019","Biscoff Cookie","Pack",163.2,"Common","COMING FROM MFI","for SO",""],["PRIME ASIA CONSOLIDATORS INC.","RMFD00610240001","Biscoff Cookie - Lotus - 250 G / Pack","RMFD080019","Biscoff Cookie","Pack",175.1,"Common","COMING FROM MFI","for SO",""],["NEXTRADE PHILIPPINES INC","RMFD01900050013","Banana Chips- Guzto- 500G/Canister - - by Canister","RMFD150076","Banana Chips","Canister",207.24,"Common","COMING FROM MFI","for SO",""],["MC ASIA FOODTRADE CORPORATION","RMFD00700050047","Milk Whole UHT - Milcasa - 1L/ Tetra - - by Tetra","RMFD030081","Fresh Milk 4","Tetra",80,"Common","COMING FROM MFI","for SO",""],["MULTI-M FOOD CORPORATION","RMFD00710050025","Milk Full Cream UHT - Anchor - 1 L / Tetra","RMFD030055","Fresh Milk 2","Tetra",115,"Common","COMING FROM MFI","for SO",""],["RIGHT MOVES INC","RMFD00700050005","Milk Fresh - Nestle - 1 L / Tetra","RMFD030007","Fresh Milk","Tetra",111.06,"Common","COMING FROM MFI","for SO",""],["ALLEGRO BEVERAGE CORPORATION","RMFD00700050037","Oatmilk - Oatside - (6L/Case) - - 1L / Pack","RMFD030029","Oatmilk","Pack",110,"Common","COMING FROM MFI","for SO",""],["COCA-COLA EUROPACIFIC ABOITIZ PHILIPPINES, INC.","RMBV00100010002","Cola - Coke - 320 ML / Can","RMBV010001","Cola Coke 320ml","Can",31.875,"Common","COMING FROM MFI","for SO",""],["COCA-COLA EUROPACIFIC ABOITIZ PHILIPPINES, INC.","RMBV00100020001","Coke Zero - - 320 mL / Can","RMBV010002","Coke Zero 320ml","Can",31.875,"Common","COMING FROM MFI","for SO",""],["COCA-COLA EUROPACIFIC ABOITIZ PHILIPPINES, INC.","RMBV00110010006","Cola Clear - Sprite - 320 ML / Can","RMBV010005","Clear Sprite 320mL","Can",31.875,"Common","COMING FROM MFI","for SO",""],["KLG INTERNATIONAL INC. - FOODSERVICE DIVISION","RMBV00200060003","Tea Camomile 25 G - Twinnings - 25 Bag / Box","RMBV020005","Tea, Camomile","Box",340,"Common","COMING FROM MFI","for SO",""],["KLG INTERNATIONAL INC. - FOODSERVICE DIVISION","RMBV00200060009","Tea Jasmine 50 G - Twinnings - 25 Bag / Box","RMBV020006","Tea ,Jasmine","Box",331,"Common","COMING FROM MFI","for SO",""],["SILVER STAR RESOURCES COMPANY INC","RMBV00200040003","Coffee Creamer 5 G - Conti`s - 100 Sachet / Pack","RMFD030031","Coffee Creamer, sachet","Pack",150,"Common","COMING FROM MFI","for SO",""],["SILVER STAR RESOURCES COMPANY INC","RMBV00200050004","Sugar Brown 7 G - Conti`s - 100 Sachet / Pack","RMFD100004","sugar sachet, brown","Pack",118,"Common","COMING FROM MFI","for SO",""],["SILVER STAR RESOURCES COMPANY INC","RMBV00200050005","Sugar White 7 G - Conti`s - 100 Sachet / Pack","#N/A","#N/A","Pack",120,"Common","COMING FROM MFI","for SO",""],["KLG INTERNATIONAL INC. - FOODSERVICE DIVISION","RMFD01400050003","Sweetener Low Calorie - Splenda - 100 Sachet / Box","RMFD100006","Sweetener sachet, low-calorie","Box",351,"Common","COMING FROM MFI","for SO - alt of 1000 sanchet per box",""],["EQUILIBRIUM INTERTRADE CORPORATION","RMBV00210020030","Curve Whole Coffee Collaborators - Equilibrium - - 500g / Pack","RMBV020022","Curve Coffee Collaborators","Pack",577,"Common","COMING FROM MFI","for SO",""],["DEAN & DELUCA (PHILIPPINES) INC.","RMBV00200060006","Santan Coffee Roaster Espresso Coffee Whole Blend #2 - - 500g / Pack","RMBV020011","Coffee bean, whole 3","Pack",532,"Common","COMING FROM MFI","for SO",""],["ALLEGRO BEVERAGE CORPORATION","RMBV00210060015","Mathcha Green Tea Powder - Allegro - - 1KG / Pack","RMBV020001","Match Powder, premix","Pack",800,"Common","COMING FROM MFI","for SO",""],["JUST CALL, INC.","RMFD00610050019","Unsweetened Cocoa Powder Goya - - 180g / Canister","RMFD070013","Cocoa Powder, Unsweetened","Canister",176.16,"Common","COMING FROM MFI","for SO",""],["RIGHT MOVES INC","RMFD00710050034","Milk Condensed - Nestle Carnation - 388 G / Can","#N/A","#N/A","Can",64.49,"Common","COMING FROM MFI","for SO",""],["BESTERM INTERNATIONAL CORPORATION","RMFD01710040022","Seasalt Caramel - Mathieu Teisseire - - 700ml / Bottle","RMBV030001","Seasalt Caramel","Bottle",432,"Common","COMING FROM MFI","for SO",""],["BESTERM INTERNATIONAL CORPORATION","RMFD01710040023","Hazelnut Sryup - Mathieu Teisseire - - 700ml / Bottle","RMBV030002","Hazelnut Sryup","Bottle",432,"Common","COMING FROM MFI","for SO",""],["BESTERM INTERNATIONAL CORPORATION","RMFD01710040024","Chocolate Sauce - Catcher Gourmet - - 2000ml / Bottle","RMBV030003","Chocolate Sauce","Bottle",705.5,"Common","COMING FROM MFI","for SO",""],["BESTERM INTERNATIONAL CORPORATION","RMFD01710040024","Chocolate Sauce - Catcher Gourmet - - 2000ml / Bottle","RMBV030003","Chocolate Sauce","Bottle",630,"Common","COMING FROM MFI","for SO",""],["BESTERM INTERNATIONAL CORPORATION","RMFD01710040025","Caramel Sauce - Catcher Gourmet - - 2000ml / Bottle","RMBV030004","Caramel Sauce","Bottle",731,"Common","COMING FROM MFI","for SO",""],["PROKRATE INTERNATIONAL TRADING CORPORATION","RMFD01710040025","Caramel Sauce - Catcher Gourmet - - 2000ml / Bottle","RMBV030004","Caramel Sauce","Bottle",630,"Common","COMING FROM MFI","for SO",""],["BESTERM INTERNATIONAL CORPORATION","RMFD01710040034","Fraise Strawberry Syrup - Mathieu Teisseire - - 700ml / Bottle","RMBV030005","Strawberry Syrup","Bottle",432,"Common","COMING FROM MFI","for SO",""],["CONFECTIONERY DREAM VENTURES INC.","RMFD02000020001","Assorted Pastel Sprinkles 1Kg - - by Pack","RMFD100026","Assorted Pastel Sprinkles","Pack",600,"Common","COMING FROM MFI","exclusive for barn",""],["STA CECILIA GENERAL MERCHANDISE","RMFD01710020009","Flavorade Ube - Bakersfield - 500g / Bottle","RMFD060032","Flavoring, Ube 1","Bottle",300,"Common","COMING FROM MFI","for SO",""],["RAREGEM FOOD PRODUCTS TRADING","RMFD01710020009","Flavorade Ube - Bakersfield - 500g / Bottle","RMFD060032","Flavoring, Ube 1","Bottle",320,"Common","COMING FROM MFI","for SO",""],["KLG INTERNATIONAL INC. - FOODSERVICE DIVISION","RMFD00500150004","Coconut Dessicated - Sunshine - - 200 G / Pack","RMFD150003","Coconut Dessicated","Pack",47.25,"Common","COMING FROM MFI","for SO",""],["MULTI-M FOOD CORPORATION","RMFD00710020080","Cream Alternative - Anchor - 1L (Whipping Cream) - - by Tetra","RMFD030046","Cream Alternative","Tetra",285,"Common","COMING FROM MFI","for SO",""],["BESTERM INTERNATIONAL CORPORATION","RMFD01710040033","Banana Syrup - Mathieu Teisseire - - 700ml / Bottle","RMBV030010","Banana Syrup","Bottle",450.5,"Common","COMING FROM MFI","for SO",""],["MSCS PRIMEGOODS, INC.","RMFD01110050001","Hot Sauce - Tabasco - 60 ML / Bottle","#N/A","#N/A","Bottle",130.23,"Common","COMING FROM MFI","for SO",""],["TIP TOP DISTRIBUTION, INC.","RMFD01110050001","Hot Sauce - Tabasco - 60 ML / Bottle","#N/A","#N/A","Bottle",121.55,"Common","COMING FROM MFI","for SO",""],["MSCS PRIMEGOODS, INC.","RMFD00810190002","Seasoning Liquid - Knorr - 130 ML / Bottle","RMFD060016","Seasoning Liquid customer","Bottle",62.48,"Common","COMING FROM MFI","for SO",""],["SOUTHSTAR DISTRIBUTORS, INC.","RMFD00810190002","Seasoning Liquid - Knorr - 130 ML / Bottle","RMFD060016","Seasoning Liquid customer","Bottle",56.6,"Common","COMING FROM MFI","for SO",""],["TAO FOODS COMPANY, INC.","RMFD00210100002","Masuma Lechon Kawali - -2pcs/pack","RMFD010088","Masuma Lechon Kawali 2pc","Pack",213,"Common","COMING FROM MFI","for SO",""],["TAO FOODS COMPANY, INC.","RMFD01510190005","Hungarian Sausage-Kielbasa-500g /Pack - - by Pack","RMFD120005","Sausage for Breakfast","Pack",320,"Common","COMING FROM MFI","for SO",""],["THE PUREFOODS-HORMEL COMPANY, INC.","RMFD01510010002","Bacon Honeycured - Purefoods - 1 KG / Pack","RMFD120002","Bacon, honeycured","Pack",675.23,"Common","COMING FROM MFI","for SO",""],["PL AGUILA MANUFACTURING, INC.","RMFD00910030007","Chorizo Style Sausage - Aguila 500 G / Pack","RMFD120001","Chorizo","Pack",246,"Common","COMING FROM MFI","for SO",""],["JITA MEAT CORP.","RMFD00210040008","Pork Ground - - by KG","RMFD010078","Pork Ground","Kg",345,"Common","COMING FROM MFI","for checking",""],["BGZ FOOD VENTURES, INC.","RMFD00400080005","Clams White - - 1Kg / Pack","#N/A","#N/A","Pack",290,"Common","COMING FROM MFI","for SO",""],["MIDA FOOD DISTRIBUTORS INC","RMFD00400080005","Clams White - - 1Kg / Pack","#N/A","#N/A","Pack",270,"Common","COMING FROM MFI","for SO",""],["SOFIA SEAFOOD, INC.","RMFD00400080005","Clams White - - 1Kg / Pack","#N/A","#N/A","Pack",300,"Common","COMING FROM MFI","for SO",""],["BESTERM INTERNATIONAL CORPORATION","RMFD01910020011","Bread French Sour Dough - - 14 slice / Pack","RMFD040008","Sourdough Bread","Pack",250,"Common","COMING FROM MFI","for SO",""],["JASONCU FOOD PRODUCTS","RMFD01210020001","Wrapper For Lumpia - Jimcu - 400 G / Pack","RMFD150027","Wrapper For Lumpia","Pack",54.25,"Common","COMING FROM MFI","for SO",""],["MIRACLE SOYBEAN FOOD INT`L. CORP.","RMFD00510550005","Tofu Regular in Boilable Bag - - 6 pcs / Pack","#N/A","#N/A","Pack",50.4,"Common","COMING FROM MFI","for SO",""],["SANTINI FOOD SPECIALISTS, INCORPORATED","RMFD00710020058","Cheese Parmesan Block - Stella - - by KG","RMFD030036","Cheese Parmesan Block","Kg",1040,"Common","COMING FROM MFI","for SO",""],["MULTI-M FOOD CORPORATION","RMFD00700020072","Cheese Mozza Extra Stretch - Anchor - - 2 KG / Pack","RMFD030023","Cheese Mozza Extra Stretch","Pack",973.68,"Common","COMING FROM MFI","for SO",""],["NEW ZEALAND CREAMERY, INC.","RMFD00710010002","Butter Compound - Golden Crown - 225 G / Bar","RMFD030001","Butter Compound","Bar",53.96,"Common","COMING FROM MFI","for SO",""],["CLE ACE CORPORATION","RMFD01510190004","Hash Brown Triangle- 18pc/Pack - - by Pack","RMFD150020","Hash Brown, Triangle","Pack",271.16,"Common","COMING FROM MFI","for SO",""],["J.R. SIMPLOT COMPANY","RMFD00500190013","W COATED SKIN ON FRIES - 6LB X 6PACK / CASE","RMFD150064","Coated Fries - 6 Lb x 6 Pack / Case","Case",25.18,"Common","COMING FROM MFI","SO - WENDYS",""],["GRAND ALLIANCE IMPORT CORPORATION","RMFD00710020034","Cheese Parmesan Grated - Marca Piña - 227 g / Bottle","RMFD030020","Cheese Parmesan Grated","Bottle",256,"Common","COMING FROM MFI","for SO",""],["FINEFOOD INDUSTRY CORPORATION","RMFD00510470006","Strawberry Frozen - - 1 KG / Pack","RMFD150005","Strawberries Frozen","Pack",130,"Common","COMING FROM MFI","for SO",""],["FINEFOOD INDUSTRY CORPORATION","RMFD00510930002","Blueberry - Frozen - - 1KG / Pack","RMFD150004","Blueberry Frozen","Pack",380,"Common","COMING FROM MFI","for SO",""],["LINK IMPORT EXPORT ENTERPRISE INC.","RMFD00710070005","Whipped Cream - Avoset Pour N' Whip - 907 G / Tetra","RMFD030002","Whipping Cream, non-dairy","Tetra",261.25,"Common","COMING FROM MFI","for SO",""],["","RMFD00710020081","Cheese Camembert - Emborg- 125 G - - by Pack","RMFD030015","Cheese Camembert","Pack","","Common","COMING FROM MFI","for SO",""],["EMR CONSUMER GOODS TRADING","RMFD00310080007","Egg Large (60-65 GMS) - - 30 Piece / Tray","RMFD130001","Fresh Egg","Tray",260,"Common","COMING FROM MFI","for SO",""],["","","Sugar Refined White - - 1 KG / Pack","RMFD050019","Soya oil 1","Pack","","","COMING FROM MFI","repack - for re -SO",""],["","","Sugar Brown -  - 1 KG / Pack","RMFD050019","Soya oil 1","Pack","","","COMING FROM MFI","repack - for re -SO",""],["EIGHTPLUS CONSUMER GOODS TRADING","RMFD00510280002","Mango Yellow - - by KG","RMFD020010","Fresh Mangoes, yellow","Kg",185,"Common","COMING FROM MFI","for SO",""],["CLE ACE CORPORATION","RMFD01810070001","Pie Filling Blueberry - Comstock - 595 G / Can","RMFD080005","Pie Filling Blueberry","Can",300,"Common","COMING FROM MFI","for SO",""],["RAREGEM FOOD PRODUCTS TRADING","RMFD01810070001","Pie Filling Blueberry - Comstock - 595 G / Can","RMFD080005","Pie Filling Blueberry","Can",365,"Common","COMING FROM MFI","for SO",""],["THE LANDMARK CORPORATION","RMFD00900150007","Jalapeno - Molinera - - 935 G / Bottle","RMFD080060","Jalapeño","Bottle",404,"","OPEN MARKET","exclusive for barn",""],["EURO RICH FOODTRADE CORPORATION","RMFD00510510005","Tomato Whole Peeled - Dolce Vita - 2500 G / can","RMFD080033","Tomato Whole Peeled","Can",320,"Common","COMING FROM MFI","for SO",""],["EURO RICH FOODTRADE CORPORATION","RMFD00610060006","Cream Black Truffle - Mazza - 500 G / Bottle","RMFD080034","Cream Black Truffle","Bottle",800,"Common","COMING FROM MFI","for SO",""],["BIG G INTERNATIONAL VENTURES INC.","RMFD00610030022","Chocolate Bar Dark Compound - Beryl's - 1 KG / Pack","RMFD070008","Chocolate Bar Dark Compound","Pack",347.2,"Common","COMING FROM MFI","for SO",""],["GLOBAL PACIFIC DISTRIBUTION NETWORK CORP.","RMFD00610030022","Chocolate Bar Dark Compound - Beryl's - 1 KG / Pack","RMFD070008","Chocolate Bar Dark Compound","Pack",312.4,"Common","COMING FROM MFI","for SO",""],["THE ITALIAN FOOD SPECIALISTS, INC.","RMFD00800250004","Truffle Oil -Luglio - - 250ml / Bottle","RMFD050006","Truffle Oil","Bottle",694.4,"Common","COMING FROM MFI","for SO",""],["","","Oil White Truffle - Gran Cucina - 100 ML / Bottle","RMFD050019","Soya oil 1","Bottle","","","COMING FROM MFI","",""],["","","Oil White Truffle - Poddi - 250 ML / Bottle","RMFD050019","Soya oil 1","Bottle","","","COMING FROM MFI","",""],["","RMFD00810040019","Chicken Broth Cubes Knorr Professional - - 60 Cubes / Tub","RMFD060001","Chicken Broth Cubes-Knorr","Tub",307.7998,"Common","COMING FROM MFI","for SO",""],["KILLION MERCHANDISING CORP.","RMFD01710010005","Flavoring Vanilla - Neco - 1 Gal / Container","RMFD060015","Flavoring, Vanilla","Container",270,"Common","COMING FROM MFI","for SO",""],["KILLION MERCHANDISING CORP.","RMFD01710040004","Syrup Light Corn - Shamrock - 4.8 KG / Container","RMFD100009","Syrup Light Corn","Container",790,"Common","COMING FROM MFI","for SO",""],["HOBENIKAT INC.","RMFD01300080042","Rice For Customer- Real Food Organic Brown Rice- 1 Kg/Pack - - by Pack","RMFD090004","Rice, Brown","Pack",147.25,"Common","COMING FROM MFI","for SO",""],["HOBENIKAT INC.","RMFD01300080041","Shiritaki Rice- - by Kg","RMFD090003","Rice, Shiratake","Kg",427.5,"Common","COMING FROM MFI","for SO",""],["PRIMAVERA RICEMILL CORPORATION","RMFD01300080030","Rice For Customer - Doña Martha - 25 KG - - by Sack","RMFD090001","Rice, White for customer","Sack",1500,"Common","COMING FROM MFI","for SO",""],["ROXAS GOLDEN ALLIANCE CORPORATION","RMFD01300080031","Rice for Customer -Rangayan- 25Kg / Sack","RMFD090020","Rice, White for customer 2","Sack",1225,"Common","COMING FROM MFI","for SO",""],["UNIQUE GLOBAL SYNERGY (UGS),VENTURES CORP.","RMFD01300080037","Customer Rice - Jasmine Rice - - 25 Kg / Sack","RMFD090021","Rice, White for customer 3","Sack",1350,"Common","COMING FROM MFI","for SO",""],["SUNNYWOOD SUPERFOODS CORP.","RMFD01300080045","Rice - Jasmine Farmboy (25Kg/Sack) - - by Sack","RMFD090023","Rice, White for customer  5","Sack",1050,"Common","COMING FROM MFI","for SO",""],["SUNNYWOOD SUPERFOODS CORP.","RMFD01300080048","Rice For Customer - Harvester's Long Grain 25kg/Sack - - by Sack","RMFD090024","Rice, White for customer  6","Sack",1525,"Common","COMING FROM MFI","for SO",""],["MSCS PRIMEGOODS, INC.","","Peanut Butter - Lady`s Choice - 340 G / Tub","RMFD050019","Soya oil 1","Tub",540.36,"Common","COMING FROM MFI","for SO switch to alt of 1kg",""],["CLE ACE CORPORATION","RMFD01910030007","Cookie Butter Smooth Spread - Biscoff - - 400g / Bottle","RMFD080097","Cookie Butter Smooth Spread","Bottle",357.9,"Common","COMING FROM MFI","for SO",""],["DONG-A PHARMA PHILS., INC.","RMFD00810060001","Cornstarch - Queen - 2 KG / Pack","RMFD040005","Cornstarch","Pack",180.26,"Common","COMING FROM MFI","for SO",""],["CLE ACE CORPORATION","RMFD00910090011","Mushroom Buttons Whole - Jolly - - 400 G / Can","RMFD080062","Mushroom Buttons Whole 1","Can",59.45,"Common","COMING FROM MFI","for SO",""],["MOLINA & SONS (PHILS.) INC.","RMFD00910080005","Kernel Corn Whole - Sunbest - - 425 G / Can","RMFD080003","Kernel Corn Whole","Can",39.5,"Common","COMING FROM MFI","for SO",""],["TIP TOP DISTRIBUTION, INC.","RMFD00810170001","Salt Refined Iodized - Mc Cormick - 1 KG / Pack","RMFD060006","Salt, Refined","Pack",44.56,"Common","COMING FROM MFI","for SO",""],["MCCORMICK PHILIPPINES, INC.","RMFD00810170001","Salt Refined Iodized - Mc Cormick - 1 KG / Pack","RMFD060006","Salt, Refined","Pack",44.57,"Common","COMING FROM MFI","for SO",""],["MSCS PRIMEGOODS, INC.","RMFD00810170001","Salt Refined Iodized - Mc Cormick - 1 KG / Pack","RMFD060006","Salt, Refined","Pack",44.57,"Common","COMING FROM MFI","for SO",""],["LITTLE JEFFREY ENTERPRISES","RMFD00810170002","Salt Rock Iodized - LJ - 1 KG / Pack","RMFD060005","Salt, rock","Pack",25,"Common","COMING FROM MFI","for SO",""],["ESPA-FIL IMPORT & EXPORT CORP.","RMFD02010090003","Wine Red - Don Garcia - 1 L / Tetra","RMFD080053","Red Wine, for kitchen","Tetra",261,"Common","COMING FROM MFI","for SO",""],["ESPA-FIL IMPORT & EXPORT CORP.","RMFD02010090006","Wine White - Don Garcia - 1 L / Tetra","RMFD080052","White Wine, for kitchen","Tetra",261,"Common","COMING FROM MFI","for SO",""],["DRADELL FOOD PRODUCTS TRADING","RMFD01110130004","Vegetable Oil - Spring - - 17 Kg / Container","RMFD050025","Vegetable Oil 2","Container",2800,"Common","COMING FROM MFI","for SO",""],["RAREGEM FOOD PRODUCTS TRADING","RMFD01110130004","Vegetable Oil - Spring - - 17 Kg / Container","RMFD050025","Vegetable Oil 2","Container",3050,"Common","COMING FROM MFI","for SO",""],["TRANS-ASIA PHILS. MANUFACTURING INDUSTRIES CORP.","RMFD01110130008","Palm Olein - RBD - - 17Kg/ Can","RMFD050026","Palm Olein - 17 Kg / Can","Can",1923,"Common","COMING FROM MFI","for SO wendys",""],["SYSU INTERNATIONAL INC","RMFD00810140007","Pepper Black Whole - McCormick - 1 KG / Pack","RMFD060037","Black Pepper, Whole","Pack",1510.5,"Common","COMING FROM MFI","for SO",""],["EURO RICH FOODTRADE CORPORATION","RMFD01110060014","Olive Oil Pure - Dolce Vita - 5 L / Container","RMFD050001","Olive Oil, Pure","Container",3500,"Common","COMING FROM MFI","for SO",""],["KILLION MERCHANDISING CORP.","RMFD01410020002","Honey - Shamrock - 750 ML / Bottle","RMFD100008","Honey","Bottle",165,"Common","COMING FROM MFI","for SO",""],["MCCORMICK PHILIPPINES, INC.","RMFD00810140001","Pepper Black Ground - Mc Cormick - 1 KG / Pack","RMFD060007","Black Pepper, ground","Pack",1153.75,"Common","COMING FROM MFI","for SO",""],["MSCS PRIMEGOODS, INC.","RMFD00810140001","Pepper Black Ground - Mc Cormick - 1 KG / Pack","RMFD060007","Black Pepper, ground","Pack",1153.75,"Common","COMING FROM MFI","for SO",""],["TIP TOP DISTRIBUTION, INC.","RMFD01110090001","Soy Sauce - Kikkoman - 1 L / Bottle","RMFD080010","Soy Sauce, premium","Bottle",274.55,"Common","COMING FROM MFI","for SO",""],["MSCS PRIMEGOODS, INC.","RMFD01110090001","Soy Sauce - Kikkoman - 1 L / Bottle","RMFD080010","Soy Sauce, premium","Bottle",313.04,"Common","COMING FROM MFI","for SO",""],["FOODZONE INC","RMFD01110090001","Soy Sauce - Kikkoman - 1 L / Bottle","RMFD080010","Soy Sauce, premium","Bottle",233.32,"Common","COMING FROM MFI","for SO",""],["DIMAX FOOD WHOLESALING","RMFD01110090001","Soy Sauce - Kikkoman - 1 L / Bottle","RMFD080010","Soy Sauce, premium","Bottle",255.45,"Common","COMING FROM MFI","for SO",""],["TIP TOP DISTRIBUTION, INC.","RMFD01110090002","Soy Sauce - Silver Swan - 3.785 L / Gal","RMFD080110","Soy Sauce, dark 1","Gallon",202.75,"Common","COMING FROM MFI","for SO",""],["MSCS PRIMEGOODS, INC.","RMFD01110090002","Soy Sauce - Silver Swan - 3.785 L / Gal","RMFD080110","Soy Sauce, dark 1","Gallon",237.37,"Common","COMING FROM MFI","for SO",""],["DIMAX FOOD WHOLESALING","RMFD01110090002","Soy Sauce - Silver Swan - 3.785 L / Gal","RMFD080110","Soy Sauce, dark 1","Gallon",210.86,"Common","COMING FROM MFI","for SO",""],["KILLION MERCHANDISING CORP.","RMFD01110080001","Sesame Oil - Yuen Yick - 750 ML / Bottle","RMFD050007","Sesame Oil","Bottle",152,"Common","COMING FROM MFI","for SO",""],["STR8 LINE PALM, INC.","RMFD01810040007","Mayonnaise - Kewpie - 1KG / Pack","RMFD030079","Mayonnaise 1","Pack",490,"Common","COMING FROM MFI","for SO",""],["EURO RICH FOODTRADE CORPORATION","RMFD01010010036","Noodles Linguine - Dolce Vita - 500 G / Pack","#N/A","#N/A","Pack",60,"Common","COMING FROM MFI","for SO",""],["ORIENTAL MERCHANTS INC.","RMFD01010010010","Noodles Linguine - Divella - 500 G / Pack","RMFD110011","Noodles Linguine 2","Pack",39,"Common","COMING FROM MFI","alternative",""],["ESV INTERNATIONAL CORPORATION","RMFD01000010035","Noodles Linguine - Campagna - 500 G / pack- - by Pack","RMFD110019","Noodles Linguine 6","Pack",75,"Common","COMING FROM MFI","alternative",""],["ORLANDO PRESTIGE INCORPORATED","RMFD01010010058","Noodle Linguine Pallante 500g/pack","RMFD110020","Noodles Linguine 7","Pack",72,"Common","COMING FROM MFI","alternative",""],["KLG INTERNATIONAL INC. - FOODSERVICE DIVISION","RMFD01110110002","Tomato Paste - Del Monte - 1 KG / Pack","RMFD060097","Tomato Paste 1","Pack",160.87,"Common","COMING FROM MFI","for SO",""],["KLG INTERNATIONAL INC. - FOODSERVICE DIVISION","RMFD01110110001","Tomato Paste - Del Monte - 150 G / Pack","RMFD060012","Tomato Paste","Pack",34.03,"Common","COMING FROM MFI","for SO",""],["RIGHT MOVES INC","RMFD00710070002","Whipped Cream All Purpose - Nestle - 250 ML / Tetra","RMFD030003","All Purpose Cream","Tetra",67.29,"Common","COMING FROM MFI","for SO",""],["MSCS PRIMEGOODS, INC.","RMFD00810190003","Seasoning Liquid - Knorr - 3.8 L / Container","RMFD060009","Seasoning Liquid kitchen","Container",1048.57,"Common","COMING FROM MFI","for SO",""],["SOUTHSTAR DISTRIBUTORS, INC.","RMFD00810190003","Seasoning Liquid - Knorr - 3.8 L / Container","RMFD060009","Seasoning Liquid kitchen","Container",957.75,"Common","COMING FROM MFI","for SO",""],["FOODZONE INC","RMFD01110050002","Hot Sauce - UFC - 100 G / Bottle","RMFD080009","Sauce Hot Kitchen","Bottle",25,"Common","COMING FROM MFI","for SO",""],["RAREGEM FOOD PRODUCTS TRADING","RMFD01110050002","Hot Sauce - UFC - 100 G / Bottle","RMFD080009","Sauce Hot Kitchen","Bottle",35,"Common","COMING FROM MFI","for SO",""],["TIP TOP DISTRIBUTION, INC.","RMFD01110020002","Fish Sauce - Datu Puti - 1 L / Container","RMFD080017","Fish Sauce","Container",77.5,"Common","COMING FROM MFI","for SO",""],["MSCS PRIMEGOODS, INC.","RMFD01110020002","Fish Sauce - Datu Puti - 1 L / Container","RMFD080017","Fish Sauce","Container",88.01,"Common","COMING FROM MFI","for SO",""],["FOODZONE INC","RMFD01110020002","Fish Sauce - Datu Puti - 1 L / Container","RMFD080017","Fish Sauce","Container",77.5,"Common","COMING FROM MFI","for SO",""],["NUTY NUTY PHILIPPINES CORP.","RMFD00910090002","Mushroom Buttons Whole - Sun Best - 425 G / Can","RMFD080002","Mushroom Buttons Whole","Can",34.97,"Common","COMING FROM MFI","for SO",""],["MOLINA & SONS (PHILS.) INC.","RMFD00910090002","Mushroom Buttons Whole - Sun Best - 425 G / Can","RMFD080002","Mushroom Buttons Whole","Can",52.5,"Common","COMING FROM MFI","for SO",""],["MSCS PRIMEGOODS, INC.","RMFD00710100002","Milk Evaporated - Alaska - 370 ML / Can","RMFD030032","Milk Evaporated","Can",62.01,"Common","COMING FROM MFI","for SO",""],["RAREGEM FOOD PRODUCTS TRADING","RMFD00710100002","Milk Evaporated - Alaska - 370 ML / Can","RMFD030032","Milk Evaporated","Can",68,"Common","COMING FROM MFI","for SO",""],["HIGHTOWER INC.","RMFD00710100002","Milk Evaporated - Alaska - 370 ML / Can","RMFD030032","Milk Evaporated","Can",55.55,"Common","COMING FROM MFI","for SO",""],["PERALTA ENTERPRISES","RMFD01410020004","Honey Pure Wild - Tropical Rendezvous - 1 L / Bottle","RMFD100007","Honey, wild","Bottle",200,"Common","COMING FROM MFI","for SO",""],["MSCS PRIMEGOODS, INC.","RMFD01410020007","Pure Honey - Happy Rabbit - 1 Kg / Bottle - - by Bottle","RMFD100014","Honey, wild 1","Bottle",275,"Common","COMING FROM MFI","for SO -alterntaive",""],["SOUTHSTAR DISTRIBUTORS, INC.","RMFD01600010022","All Purpose Flour - White King - - 800 G / Pack","RMFD040038","All Purpose Flour 1","Pack",79.62,"Common","COMING FROM MFI","for SO",""],["CLE ACE CORPORATION","RMFD01100220003","Anchovy In Olive oil  - Dona Elena - - 56g / Can","RMFD080004","Anchovy In Olive oil","Can",145.3,"Common","COMING FROM MFI","for SO",""],["TIP TOP DISTRIBUTION, INC.","RMFD01110140005","Vinegar - Datu Puti - 3.785 L / Gal","RMFD080012","Vinegar, white","Gallon",161.5,"Common","COMING FROM MFI","for SO",""],["MSCS PRIMEGOODS, INC.","RMFD01110140005","Vinegar - Datu Puti - 3.785 L / Gal","RMFD080012","Vinegar, white","Gallon",183.4,"Common","COMING FROM MFI","for SO",""],["MSCS PRIMEGOODS, INC.","RMFD01110140005","Vinegar - Datu Puti - 3.785 L / Gal","RMFD080012","Vinegar, white","Gallon",161.5,"Common","COMING FROM MFI","for SO",""],["KLG INTERNATIONAL INC. - FOODSERVICE DIVISION","RMFD01100140018","Vinergar Red Cane - Del Monte - 3.8 L / Gal","RMFD080137","Vinegar, red cane 1","Gal",351.16,"Common","COMING FROM MFI","for SO",""],["TIP TOP DISTRIBUTION, INC.","RMFD01810040003","Mayonnaise - Lady`s Choice - 5.5L - 2 Gal / Case","RMFD030039","Mayonnaise","Case",3280.21,"Common","COMING FROM MFI","for SO",""],["MSCS PRIMEGOODS, INC.","RMFD01810040003","Mayonnaise - Lady`s Choice - 5.5L - 2 Gal / Case","RMFD030039","Mayonnaise","Case",3536.7,"Common","COMING FROM MFI","for SO",""],["SOUTHSTAR DISTRIBUTORS, INC.","RMFD01810040003","Mayonnaise - Lady`s Choice - 5.5L - 2 Gal / Case","RMFD030039","Mayonnaise","Case",3280.2,"Common","COMING FROM MFI","for SO",""],["METOLIUS VALLEY, INC. ,","RMFD00510300008","Mushroom Shitake - Metolius - 3 KG / Bag","RMFD150017","Mushroom, Shitake","Bag",2100,"Common","COMING FROM MFI","for SO",""],["TIP TOP DISTRIBUTION, INC.","RMFD01810050003","Mustard Prepared - Mc Cormick - 3.4 KG / Tub","RMFD080093","Mustard Prepared","Tub",527.84,"Common","COMING FROM MFI","for SO",""],["MCCORMICK PHILIPPINES, INC.","RMFD01810050003","Mustard Prepared - Mc Cormick - 3.4 KG / Tub","RMFD080093","Mustard Prepared","Tub",502.75,"Common","COMING FROM MFI","for SO",""],["MSCS PRIMEGOODS, INC.","RMFD00810180003","Demi-Glace Sauce Mix - Knorr - 1 KG / Pack","RMFD060010","Demi-Glace Sauce Mix Knorr 1kg","Pack",948.35,"Common","COMING FROM MFI","for SO",""],["SOUTHSTAR DISTRIBUTORS, INC.","RMFD00810180003","Demi-Glace Sauce Mix - Knorr - 1 KG / Pack","RMFD060010","Demi-Glace Sauce Mix Knorr 1kg","Pack",869.25,"Common","COMING FROM MFI","for SO",""],["SOUTHSTAR DISTRIBUTORS, INC.","RMFD01010010007","Noodles Elbow Macaroni - Royal - 1 KG / Pack","RMFD110001","Elbow Macaroni","Pack",89.58,"Common","COMING FROM MFI","for SO",""],["TIP TOP DISTRIBUTION, INC.","RMFD00800150002","Rosemary Leaves Whole - Mc Cormick - 235 G / Bottle","RMFD060103","Rosemary Whole 1","Bottle",366.93,"Common","COMING FROM MFI","for SO",""],["Noodles Lasagna - HOL - - 450g / Pack","","Noodles Lasagna - Divella - 500 G / Pack","RMFD050019","Soya oil 1","Pack",132,"Common","COMING FROM MFI","for SO switch to alt of HOL",""],["SUBIC ROASTERY AND CAFE CORPORATION","RMBV00200020016","Coffee Whole Guji Ethiopia- Source-200g/pack - - by Pack","#N/A","#N/A","Pack",750,"Exclusive","DIRECT SUPPLIER AT BARN","",""],["SUBIC ROASTERY AND CAFE CORPORATION","RMBV00200020019","Coffee Whole Mt Apo Davao- Source- 200g/pack - - by Pack","#N/A","#N/A","Pack",580,"Exclusive","DIRECT SUPPLIER AT BARN","",""],["FOODSPHERE INC","RMFD00710020083","Sliced Cheese - High Colored -CDO-250g/22slices /Pack - - by Pack","RMFD030048","Sliced Cheese - 22 Pcs / Pack","Pack",106.26,"Common","COMING FROM MFI","for SO",""],["S&R","","Kruzteaz Buttermix 4.53 Kg /Pack","RMFD050019","Soya oil 1","Pack",409,"Exclusive","OPEN MARKET","",""],["MCCORMICK PHILIPPINES, INC.","RMFD00810020002","Basil Leaves Whole - Mc Cormick - - 180 G / Bottle","RMFD060050","Basil leaves, Whole","Pack",301.35,"Common","COMING FROM MFI","for SO switch to 300g",""],["","RMFD01710010040","Flavoring Butter- Mccormick-20ml/Bot - - by Bottle","RMFD060107","Flavoring Butter","Bottle",45.5,"Exclusive","OPEN MARKET","",""],["","NO ITEM CODE","Marshmallow","#N/A","#N/A","","","Exclusive","FOR SOURCING","all about baking",""],["","NO ITEM CODE","Gourmet Tuyo","#N/A","#N/A","","","Exclusive","FOR SOURCING","dona elena",""],["MULTI-M FOOD CORPORATION","RMFD00710010004","Butter Salted - Anchor - 227 G / Bar","RMFD030101","Butter Salted 3","Bar",148.68,"Common","COMING FROM MFI","for SO",""],["","RMFD00510510002","Tomato Fresh - - by KG","RMFD020005","Tomato Fresh","Kg","","","","",""],["","","Cherry Tomato","RMFD050019","Soya oil 1","Kg","","","","",""],["","RMFD00510320001","Onion White - - by KG","RMFD020002","Onion, White","Kg","","","","",""],["","RMFD00500320002","Onion Red - - by KG","RMFD020038","Onion, Red","Kg","","","","",""],["","RMFD00510450001","Spring Onion - - by KG","RMFD020026","Spring Onion","Kg","","","","",""],["","RMFD00500610002","Alfalfa Sprouts - Salad Time - 125 G /Pack","RMFD020054","Alfalfa Sprouts","Kg","","","","",""],["","","Baguio Beans","RMFD050019","Soya oil 1","Kg","","","","",""],["","RMFD00510110001","Carrots - - by KG","RMFD020018","Carrots","Kg","","","","",""],["","RMFD00510370001","Potato - - by KG","RMFD020022","Potato","Kg","","","","",""],["","","Brocoli","RMFD050019","Soya oil 1","Kg","","","","",""],["","RMFD00510130001","Celery - - by KG","RMFD020023","Celery","Kg","","","","",""],["","","Rosemary Fresh","RMFD050019","Soya oil 1","Kg","","","","",""],["","RMFD00510350011","Basil Leaves Fresh - - by Kg","RMFD020015","Basil Leaves Fresh","Kg","","","","",""],["","RMFD00510350001","Parsley - - by KG","RMFD020003","Parsley","Kg","","","","",""],["","","Cucumber","RMFD050019","Soya oil 1","Kg","","","","",""],["","RMFD00500590028","Lettuce Romaine Cut - - 250 G / Pack","RMFD020007","Lettuce Romaine","Kg","","","","",""],["","RMFD00510350003","Arugula Leaves Fresh - - 100 G / Pack","RMFD020042","Arugula","Kg","","","","",""],["","RMFD00500780001","Lemon Fresh - - by Piece","RMFD020013","Lemon Fresh","Kg","","","","",""],["","RMFD00510210001","Garlic Peeled - - by KG","RMFD020001","Peeled Garlic","Kg","","","","",""],["","RMFD00510060002","Bell Pepper Red - - by KG","RMFD020017","Bell Pepper Red","Kg","","","","",""],["","RMFD00510220001","Ginger - - by KG","RMFD020019","Ginger","Kg","","","","",""],["","","Grapes","RMFD050019","Soya oil 1","Kg","","","","",""],["","","Zucchini","RMFD050019","Soya oil 1","Kg","","","","",""],["","RMFD00510460001","Squash - - by KG","RMFD020031","Squash","Kg","","","","",""],["","RMFD00510040001","Banana Lacatan - - by KG","RMFD020011","Banana Lacatan","Kg","","","","",""],["","","Red Cabbage","RMFD050019","Soya oil 1","Kg","","","","",""],["","","Green cabbage","RMFD050019","Soya oil 1","Kg","","","","",""],["","RMFD00500590026","Lettuce Green Ice Whole - - 250 G / Pack","RMFD020006","Lettuce Green Ice","Kg","","","","",""],["","","Sweet Corn","RMFD050019","Soya oil 1","Kg","","","","",""],["","RMFD00500960001","Mint Leaves - - - by KG","#N/A","#N/A","Kg","","","","",""],["","","Dill Fresh","RMFD050019","Soya oil 1","Kg","","","","",""],["","RMFD00510280002","Mango Yellow - - by KG","RMFD020010","Fresh Mangoes, yellow","Kg","","","","",""],["","","Mango Green","RMFD050019","Soya oil 1","Kg","","","","",""],["","","Watermelon","RMFD050019","Soya oil 1","Kg","","","","",""],["","","Lime","RMFD050019","Soya oil 1","Kg","","","","",""],["","","Orange","RMFD050019","Soya oil 1","Kg","","","","",""],["","","Apple","RMFD050019","Soya oil 1","Kg","","","","",""],["","","Strawberry Us","RMFD050019","Soya oil 1","Kg","","","","",""],["","","Asparagus","RMFD050019","Soya oil 1","Kg","","","","",""],["","","Ice Tube","RMFD050019","Soya oil 1","Sack","","","","",""],["LABELMEN ENTERPRISES","RMPK00900010345","Product Label for Iced Tea 70x45mm - - by Piece","#N/A","#N/A","Piece",1.9,"Common","","",""],["LABELMEN ENTERPRISES","RMPK00900010380","Product Label for Iced Tea Zero - - by Piece","#N/A","#N/A","Piece",1,"Common","","",""],["NEW SO'S ENTERPRISES INC.","RMDC00100130002","Toothpick With Mint - 1,000 Piece / Box","#N/A","#N/A","Box",80,"Common","","",""],["LLRJ TRADING","RMDC00100110001","Table Napkin Folded -  - 350 Piece / Pack","#N/A","#N/A","Pack",80,"Common","","",""],["NEW SO'S ENTERPRISES INC.","RMPK00100030002","Glassine Bag  1 IN -  - by Piece","#N/A","#N/A","Piece",0.84,"Common","","",""],["COLOR1 DIGITAL INC.","RMPD00100040093","Sticker label for Focaccia Bread--by Piece","#N/A","#N/A","Piece",12.35,"Common","","",""],["VAYAO WAX MANUFACTURING INC.","RMDC00100010070","Candle Birthday Lavender by 50pcs","RMPK050047","2022RB Candle #0 - Lavander - - by pc","Piece",11,"Common","","",""],["VAYAO WAX MANUFACTURING INC.","RMDC00100010080","Candle Birthday Blue by 50pcs","RMPK050057","2022RB Candle #0 - Blue - - by pc","Piece",11,"Common","","",""],["SECAED GLOBAL ENTERPRISES, INC.","RMDC00300050006","2025 Pla Cups 16oz Clear/Printed (BARN)--By Piece","#N/A","#N/A","Piece",7.87,"Exclusive","","",""],["SECAED GLOBAL ENTERPRISES, INC.","RMDC00300050004","PLA Flat Lid 98mm (clear)--By Piece","#N/A","#N/A","Piece",2.09,"Common","","",""],["CELESTIAL TRADERS CORP.","RMDC00100110015","Barn Pastry Pouch Small--500pcs/pack-by pack","RMPK010072","Barn Take out Pouch- - by Piece","Pack",4325,"Exclusive","","",""],["CELESTIAL TRADERS CORP.","RMPK01000040020","Barn Bento Sleeve--200pcs/pack--by Pack","#N/A","#N/A","Pack",700,"Exclusive","","",""],["RKMI PILIPINAS INC.","RMPK01210010002","Aluminum Foil 30 CM Width - Reynold`s Kitchen Magic - 300 M / Roll","RMPK030005","Aluminum Foil  30 CM Width - Reynold`s Kitchen Magic - 300 M / Rol (6 roll/case)","Roll",660,"Common","","",""],["NEW SO'S ENTERPRISES INC.","RMPK01210040003","Wrapper Paperlene 12 IN - Little Candy - 300 M / Roll","RMPK020005","Paperlene Wrapper","Roll",380,"Common","","",""],["NEW SO'S ENTERPRISES INC.","RMPK01210040012","Wrapper Greaseproof 40 GSM 24x18 IN - - 480 Sheet / Ream","RMPK010027","Wrapper Greaseproof 40 GSM  24x18 IN -  - 480 Sheet / Ream","Roll",380,"Common","","",""],["NEW SO'S ENTERPRISES INC.","RMPK00800030012","Plastic Canister with Lid Clear Round 1/2 Gal  (T2300) -  - by Set","RMPK020003","Plastic Canister Round Clear w/ lid (RO75)1/2Gal - - by Set","Piece",17.1,"Common","","",""],["LLRJ TRADING","RMPK00800080017","Plastic Canister with Lid Round (S-16) 500 ML - - by Set","RMPK020029","Plastic Canister with Lid Round (S-16) 500 ML - - by Set","Set",3.6,"Common","","",""],["SECAED GLOBAL ENTERPRISES, INC.","RMPK00800100027","Bowl Bagasse 900ml With Lid - -50piece / Pack","#N/A","#N/A","Pack",577,"Common","","",""],["UNITED POLYRESINS INC.","RMPK00700010003","Plastic Bag PE 5x8 IN -  - by Piece","RMPK020057","Plastic Bag PE 5x8 IN -  - by pc","Piece",0.49,"Common","","",""],["UNITED POLYRESINS INC.","RMPK00700010004","Plastic Bag PE 9x14 IN -  - by Piece","RMPK020058","Plastic Bag PE 9x14 IN -  - by Piece","Piece",1.52,"Common","","",""],["UNITED POLYRESINS INC.","RMPK00700010034","","RMPK020063","Plastic Bag PE Transparent Plain 37x40x0.0008 IN -  - by pc","",6.45,"Common","","",""]];
+
+/* =====================================================================
+   STATE
+   ===================================================================== */
+let sb = null, user = null, mode = "cloud"; // or "local"
+const S = { items:{}, lines:{}, settings:null };
+const dirty = new Map();   // key coll|id -> {coll,id,data,del}
+let saveTimer = null, curWeek = mondayOf(new Date()), curDay = todayIdx(curWeek);
+let selected = new Set(), undoStack = [];
+
+const DEFAULT_SETTINGS = { id:"main", userName:"Hezon", locations:["BARN","MFI","MSL"], dlocs:["BARN","MFI","MSL","SAFEXPRESS","MARIKINA","CEBU","BACOLOR","METS"], target:95, days:6, showLocs:null, seeded:false };
+
+/* =====================================================================
+   UTIL
+   ===================================================================== */
+function $(s,r=document){return r.querySelector(s)}
+function $$(s,r=document){return [...r.querySelectorAll(s)]}
+function uid(){return (crypto.randomUUID?crypto.randomUUID():Date.now().toString(36)+Math.random().toString(36).slice(2))}
+function esc(s){return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+function num(v){if(v===""||v==null)return 0;const n=Number(String(v).replace(/,/g,""));return isFinite(n)?n:0}
+function fmt(n,d=0){if(n==null||n==="")return"";return Number(n).toLocaleString("en-PH",{minimumFractionDigits:d,maximumFractionDigits:d})}
+function fmtQ(n){return n?fmt(n,(n%1)?2:0):""}
+function peso(n){return "₱"+fmt(n,2)}
+function pct(n){return isFinite(n)?(n*100).toFixed(1)+"%":"—"}
+function iso(d){const z=new Date(d.getTime()-d.getTimezoneOffset()*60000);return z.toISOString().slice(0,10)}
+function parseISO(s){const [y,m,d]=s.split("-").map(Number);return new Date(y,m-1,d)}
+function mondayOf(d){const x=new Date(d.getFullYear(),d.getMonth(),d.getDate());const w=(x.getDay()+6)%7;x.setDate(x.getDate()-w);return iso(x)}
+function addDays(isoS,n){const d=parseISO(isoS);d.setDate(d.getDate()+n);return iso(d)}
+function isoWeek(isoS){const d=parseISO(isoS);d.setDate(d.getDate()+3-((d.getDay()+6)%7));const w1=new Date(d.getFullYear(),0,4);return 1+Math.round(((d-w1)/864e5-3+((w1.getDay()+6)%7))/7)}
+function shortDate(isoS){const d=parseISO(isoS);return d.toLocaleDateString("en-PH",{month:"short",day:"numeric"})}
+function todayIdx(week){const t=iso(new Date());const diff=Math.round((parseISO(t)-parseISO(week))/864e5);return diff}
+function nDays(){return (S.settings&&S.settings.days)||6}
+function firstWord(s){return String(s||"").trim().split(/\s+/)[0].toUpperCase()}
+function toast(msg,undo){const t=document.createElement("div");t.className="toast";t.innerHTML=`<span>${esc(msg)}</span>`;if(undo){const b=document.createElement("button");b.textContent="Undo";b.onclick=()=>{undo();t.remove()};t.appendChild(b)}document.body.appendChild(t);setTimeout(()=>t.remove(),undo?7000:2600)}
+function routeTag(r){if(!r)return"";const u=r.toUpperCase();let c="";if(u.includes("MFI"))c="mfi";else if(u.includes("OPEN"))c="om";else if(u.includes("DIRECT"))c="dir";else if(u.includes("SOURC"))c="src";return `<span class="tag ${c}">${esc(r)}</span>`}
+function isNA(v){return !v||String(v).trim()===""||String(v).toUpperCase().includes("#N/A")}
+
+/* =====================================================================
+   STORAGE (Supabase + local cache)
+   ===================================================================== */
+const LS_KEY = () => "dt_barn_"+(mode==="local"?"local":(user?user.id:"anon"));
+function cacheSave(){try{localStorage.setItem(LS_KEY(),JSON.stringify(S))}catch(e){}}
+function cacheLoad(){try{const s=JSON.parse(localStorage.getItem(LS_KEY())||"null");if(s){S.items=s.items||{};S.lines=s.lines||{};S.settings=s.settings||null;return true}}catch(e){}return false}
+
+function setSync(state,txt){const d=$("#syncDot");d.className="dot "+(state||"");$("#syncTxt").textContent=txt}
+
+function put(coll,obj){ // stage a doc for save
+  obj.updated=Date.now();
+  if(coll==="item")S.items[obj.id]=obj; else if(coll==="line")S.lines[obj.id]=obj; else if(coll==="settings")S.settings=obj;
+  dirty.set(coll+"|"+obj.id,{coll,id:obj.id,data:obj,del:false}); scheduleSave();
+}
+function del(coll,id){
+  if(coll==="item")delete S.items[id]; else if(coll==="line")delete S.lines[id];
+  dirty.set(coll+"|"+id,{coll,id,del:true}); scheduleSave();
+}
+function scheduleSave(){cacheSave();setSync("busy","Saving…");clearTimeout(saveTimer);saveTimer=setTimeout(flush,700)}
+async function flush(){
+  if(mode==="local"){dirty.clear();setSync("off","Saved on this computer");return}
+  if(!dirty.size){setSync("","Saved");return}
+  const batch=[...dirty.values()];dirty.clear();
+  const ups=batch.filter(b=>!b.del).map(b=>({user_id:user.id,coll:b.coll,id:b.id,data:b.data,updated_at:new Date().toISOString()}));
+  const dels=batch.filter(b=>b.del);
+  try{
+    for(let i=0;i<ups.length;i+=400){const {error}=await sb.from(TABLE).upsert(ups.slice(i,i+400),{onConflict:"user_id,coll,id"});if(error)throw error}
+    for(const coll of ["line","item"]){const ids=dels.filter(d=>d.coll===coll).map(d=>d.id);for(let i=0;i<ids.length;i+=200){if(!ids.length)break;const {error}=await sb.from(TABLE).delete().eq("user_id",user.id).eq("coll",coll).in("id",ids.slice(i,i+200));if(error)throw error}}
+    setSync("","Saved · "+new Date().toLocaleTimeString("en-PH",{hour:"2-digit",minute:"2-digit"}));
+  }catch(e){
+    console.error(e);batch.forEach(b=>{const k=b.coll+"|"+b.id;if(!dirty.has(k))dirty.set(k,b)});
+    setSync("err","Not saved – retrying");clearTimeout(saveTimer);saveTimer=setTimeout(flush,5000);
+  }
+}
+window.addEventListener("beforeunload",e=>{if(dirty.size&&mode==="cloud"){flush();e.preventDefault();e.returnValue=""}});
+
+async function loadCloud(){
+  setSync("busy","Loading…");
+  let all=[],from=0;
+  while(true){const {data,error}=await sb.from(TABLE).select("coll,id,data").eq("user_id",user.id).range(from,from+999);if(error)throw error;all=all.concat(data);if(data.length<1000)break;from+=1000}
+  S.items={};S.lines={};S.settings=null;
+  for(const r of all){if(r.coll==="item")S.items[r.id]=r.data;else if(r.coll==="line")S.lines[r.id]=r.data;else if(r.coll==="settings")S.settings=r.data}
+  cacheSave();setSync("","Synced");
+}
+
+function ensureSettings(){
+  if(!S.settings){put("settings",{...DEFAULT_SETTINGS})}
+  for(const k in DEFAULT_SETTINGS)if(S.settings[k]===undefined)S.settings[k]=DEFAULT_SETTINGS[k];
+  if(!S.settings.seeded && !Object.keys(S.items).length){seedMaster();S.settings.seeded=true;put("settings",S.settings)}
+}
+function seedMaster(){
+  for(const r of MASTER_SEED){
+    const [supplier,code,desc,newCode,newDesc,uom,price,group,route,notes,omp]=r;
+    put("item",{id:uid(),supplier,code,desc,newCode,newDesc,uom,price:price===""?"":price,group,route,notes,omp:omp===""?"":omp});
+  }
+}
+
+/* =====================================================================
+   CALCULATIONS
+   ===================================================================== */
+function weekLines(week){return Object.values(S.lines).filter(l=>l.week===week&&(l.schedule||SCHEDULE)===SCHEDULE)}
+function lineCalc(l,refWeek){
+  const nd=nDays();
+  const ord=[],act=[];
+  for(let d=0;d<nd;d++){ord.push(num((l.ord||[])[d]));let a=0;for(const loc in (l.act||{}))a+=num(l.act[loc][d]);act.push(a)}
+  const O=ord.reduce((a,b)=>a+b,0),A=act.reduce((a,b)=>a+b,0);
+  const ti=todayIdx(l.week); // days since Monday of line's week
+  const passed=Math.min(nd,Math.max(0,ti));            // days strictly before today
+  let co=0,ca=0,wasBehind=false,behindNow=0,behindDays=[];
+  for(let d=0;d<nd;d++){co+=ord[d];ca+=act[d];if(co-ca>1e-9&&ord.slice(0,d+1).some(x=>x>0)){ if(d<passed){wasBehind=true;behindDays.push(d)} }}
+  // cumulative ordered up to yesterday vs cumulative delivered up to today
+  let coP=0;for(let d=0;d<passed;d++)coP+=ord[d];
+  let caT=0;for(let d=0;d<Math.min(nd,passed+1);d++)caT+=act[d];
+  behindNow=Math.max(0,coP-caT);
+  const dueToday=(ti>=0&&ti<nd)?ord[ti]:0;
+  let status;
+  if(O===0&&A===0)status="No order";
+  else if(A>O+1e-9)status="Over";
+  else if(A>=O-1e-9)status=wasBehind?"Late":"Complete";
+  else if(behindNow>1e-9)status="Short";
+  else if(dueToday>0)status="Due today";
+  else status="Scheduled";
+  const price=num(l.price);
+  return {ord,act,O,A,fill:O?A/O:(A?1:NaN),costO:O*price,costA:A*price,status,behindNow,behindDays,dueToday,ti};
+}
+function pillFor(st){const m={"Complete":"p-ok","Late":"p-late","Short":"p-short","Over":"p-over","Due today":"p-due","Scheduled":"p-sch","No order":"p-none"};return `<span class="pill ${m[st]||"p-sch"}">${st==="Late"?"Late – complete":st}</span>`}
+function lineFlags(l){
+  const f=[];
+  const po=String(l.po||"").trim().toUpperCase();
+  if(!po||po.includes("NEED")||po.includes("FOR PO"))f.push(["No PO",""]);
+  if(!num(l.price))f.push(["No price",""]);
+  if(isNA(l.newCode))f.push(["#N/A code","w"]);
+  if(!String(l.supplier||"").trim())f.push(["No supplier",""]);
+  return f;
+}
+function totalsFor(lines){let O=0,A=0,cO=0,cA=0;for(const l of lines){const c=lineCalc(l);O+=c.O;A+=c.A;cO+=c.costO;cA+=c.costA}return {O,A,cO,cA,fill:cO?cA/cO:NaN}}
+
+/* =====================================================================
+   HEADER / WEEK
+   ===================================================================== */
+function renderWeek(){
+  const nd=nDays();
+  $("#wkLbl").textContent="WK "+isoWeek(curWeek);
+  $("#wkRng").textContent=shortDate(curWeek)+" – "+shortDate(addDays(curWeek,nd-1))+", "+parseISO(curWeek).getFullYear();
+  $("#wkPick").value=curWeek;
+}
+function gotoWeek(w){curWeek=w;const ti=todayIdx(w);curDay=(ti>=0&&ti<nDays())?ti:0;selected.clear();renderAll()}
+$("#wkPrev").onclick=()=>gotoWeek(addDays(curWeek,-7));
+$("#wkNext").onclick=()=>gotoWeek(addDays(curWeek,7));
+$("#wkToday").onclick=()=>gotoWeek(mondayOf(new Date()));
+$("#wkPick").onchange=e=>{if(e.target.value)gotoWeek(mondayOf(parseISO(e.target.value)))};
+
+let curView="today";
+$$("#tabs button").forEach(b=>b.onclick=()=>{curView=b.dataset.v;$$("#tabs button").forEach(x=>x.classList.toggle("on",x===b));$$(".view").forEach(v=>v.classList.toggle("on",v.id==="v-"+curView));renderView()});
+
+function renderAll(){renderWeek();renderView();renderAlertBadge();renderGreeting()}
+function renderView(){({today:renderToday,grid:renderGrid,summary:renderSummary,alerts:renderAlerts,master:renderMaster,settings:renderSettings})[curView]()}
+
+/* =====================================================================
+   GREETING (always shown, follows the clock)
+   ===================================================================== */
+function greetingFor(d){const h=d.getHours();
+  if(h>=5&&h<12)return["Good morning","☀️","Let's get today's deliveries in."];
+  if(h>=12&&h<18)return["Good afternoon","🌤️","Here's where today's deliveries stand."];
+  if(h>=18&&h<22)return["Good evening","🌇","Wrapping up the day – check what's still open."];
+  return["Good evening","🌙","Working late? Here's a quick look at today."]}
+function renderGreeting(){
+  const el=$("#greet");if(!el||!S.settings)return;
+  const now=new Date(),[g,ic,sub]=greetingFor(now),name=(S.settings.userName||"").trim();
+  const wk=mondayOf(now),ti=todayIdx(wk),lines=weekLines(wk);let exp=0,full=0,short=0;
+  if(ti>=0&&ti<nDays())for(const l of lines){const c=lineCalc(l);let co=0,ca=0;for(let i=0;i<ti;i++){co+=c.ord[i];ca+=c.act[i]}const back=Math.max(0,co-ca),e=c.ord[ti]+back;if(e>0){exp++;if(c.act[ti]>=e-1e-9)full++}if(c.status==="Short")short++}
+  const a=computeAlerts(wk);const nAl=a.short.length+a.below.length+a.nopo.length+a.noprice.length+a.late.length+a.over.length+a.nosup.length;
+  const dateTxt=now.toLocaleDateString("en-PH",{weekday:"long",day:"numeric",month:"long",year:"numeric"})+" · "+now.toLocaleTimeString("en-PH",{hour:"numeric",minute:"2-digit"});
+  el.innerHTML=`<div class="gi">${ic}</div><div style="position:relative;z-index:1"><div class="gh">${g}${name?", "+esc(name):""}! 👋</div><div class="gs">${dateTxt} · Week ${isoWeek(wk)} · ${sub}</div></div>
+    <div class="gchips">
+      <span class="gchip due" data-go="today"><b>${exp}</b>expected today</span>
+      <span class="gchip ok" data-go="today"><b>${full}</b>received in full</span>
+      <span class="gchip ${short?"bad":"ok"}" data-go="alerts"><b>${short}</b>short</span>
+      <span class="gchip ${nAl?"bad":"ok"}" data-go="alerts"><b>${nAl}</b>alerts</span>
+    </div>`;
+  $$("#greet [data-go]").forEach(c=>c.onclick=()=>{if(curWeek!==wk)gotoWeek(wk);$(`#tabs [data-v=${c.dataset.go}]`).click()});
+}
+setInterval(()=>{if(S.settings){const before=$("#greet .gh")?.textContent;renderGreeting()}},30000);
+
+/* =====================================================================
+   KPI helper
+   ===================================================================== */
+function kpiHtml(list){return list.map(k=>`<div class="kpi ${k.cls||""}"><div class="l">${k.l}</div><div class="v">${k.v}</div>${k.s?`<div class="s">${k.s}</div>`:""}${k.bar!=null?`<div class="bar"><i class="${k.bar<(S.settings.target/100)?(k.bar<.8?"low":"mid"):""}" style="width:${Math.min(100,k.bar*100)}%"></i></div>`:""}</div>`).join("")}
+
+/* =====================================================================
+   TODAY VIEW
+   ===================================================================== */
+function renderToday(){
+  const nd=nDays(),lines=weekLines(curWeek);
+  $("#dayTabs").innerHTML=Array.from({length:nd},(_,d)=>{const dt=addDays(curWeek,d);const cnt=lines.filter(l=>num((l.ord||[])[d])>0).length;return `<button data-d="${d}" class="${d===curDay?"on":""}">${DAYNAMES[d]} ${cnt?`(${cnt})`:""}<small>${shortDate(dt)}${iso(new Date())===dt?" · today":""}</small></button>`}).join("");
+  $$("#dayTabs button").forEach(b=>b.onclick=()=>{curDay=+b.dataset.d;renderToday()});
+  const d=curDay,q=$("#tdSearch").value.trim().toLowerCase(),stF=$("#tdStatus").value,carry=$("#tdCarry").checked;
+  const locs=S.settings.locations;
+  const rows=[];let expQ=0,recQ=0,expC=0,recC=0,nLines=0,nDone=0,nShort=0;
+  for(const l of lines){
+    const c=lineCalc(l);
+    const ordD=c.ord[d];
+    let co=0,ca=0;for(let i=0;i<d;i++){co+=c.ord[i];ca+=c.act[i]}
+    const backlog=Math.max(0,co-ca);
+    const recD=c.act[d];
+    if(!(ordD>0||recD>0||(carry&&backlog>0)))continue;
+    const exp=ordD+(carry?backlog:0);
+    const st=recD>=exp-1e-9?(recD>exp+1e-9?"Over":(backlog>0&&carry?"Late":"Complete")):(todayIdx(curWeek)>d?"Short":(todayIdx(curWeek)===d?"Due today":"Scheduled"));
+    if(q&&!(`${l.supplier} ${l.code} ${l.desc} ${l.po} ${l.newDesc}`.toLowerCase().includes(q)))continue;
+    if(stF==="open"&&["Complete","Over","Late"].includes(st))continue;
+    if(stF&&stF!=="open"&&st!==stF)continue;
+    rows.push({l,c,ordD,backlog,exp,recD,st});
+    expQ+=exp;recQ+=Math.min(recD,exp);expC+=exp*num(l.price);recC+=Math.min(recD,exp)*num(l.price);nLines++;if(recD>=exp-1e-9)nDone++;if(st==="Short")nShort++;
+  }
+  rows.sort((a,b)=>String(a.l.supplier).localeCompare(b.l.supplier)||String(a.l.desc).localeCompare(b.l.desc));
+  $("#todayKpis").innerHTML=kpiHtml([
+    {l:DAYNAMES[d]+" "+shortDate(addDays(curWeek,d))+" · lines expected",v:nLines,s:`${nDone} received in full`},
+    {l:"Qty received / expected",v:`${fmtQ(recQ)} / ${fmtQ(expQ)}`,bar:expQ?recQ/expQ:null},
+    {l:"Value received",v:peso(recC),s:"of "+peso(expC)},
+    {l:"Day fill rate (value)",v:pct(expC?recC/expC:NaN),cls:expC&&recC/expC<S.settings.target/100?"bad":"good"},
+    {l:"Short lines",v:nShort,cls:nShort?"bad":"good"},
+  ]);
+  if(!rows.length){$("#todayTbl").innerHTML=`<tr><td class="empty">No deliveries expected on ${DAYNAMES[d]}. Add orders in the Weekly Schedule.</td></tr>`;return}
+  let h=`<thead><tr class="h1"><th>Supplier</th><th>Deliver to</th><th>PO No.</th><th>Item</th><th>UOM</th><th class="ord">Ordered ${DAYNAMES[d]}</th>${carry?`<th class="ord">Backlog</th>`:""}<th class="ord">Expected</th>${locs.map(x=>`<th class="act">Rcvd @ ${esc(x)}</th>`).join("")}<th class="act">Total rcvd</th><th>Balance</th><th>Status</th><th>Week fill</th></tr></thead><tbody>`;
+  for(const r of rows){const l=r.l;const bal=r.exp-r.recD;
+    h+=`<tr><td class="c">${esc(l.supplier)}</td><td class="c">${esc(l.loc||"")}</td><td class="c">${esc(l.po||"")}${lineFlags(l).filter(f=>f[0]==="No PO").map(f=>`<span class="flag">${f[0]}</span>`).join("")}</td>
+    <td class="c desc" title="${esc(l.desc)}">${esc(l.newDesc&&!isNA(l.newDesc)?l.newDesc:l.desc)}<span class="sub">${esc(l.code)}</span></td><td class="c">${esc(l.uom)}</td>
+    <td class="r ordc">${fmtQ(r.ordD)}</td>${carry?`<td class="r ordc">${fmtQ(r.backlog)}</td>`:""}<td class="r ordc tot">${fmtQ(r.exp)}</td>
+    ${locs.map(x=>`<td class="actc"><input size="1" class="cell ${num((l.act?.[x]||[])[d])?"has":""}" data-id="${l.id}" data-loc="${esc(x)}" data-d="${d}" value="${esc(((l.act?.[x]||[])[d])??"")}" inputmode="decimal"></td>`).join("")}
+    <td class="r actc tot">${fmtQ(r.recD)}</td><td class="r" style="color:${bal>0?"var(--bad)":bal<0?"var(--info)":"var(--ok)"}">${bal?fmtQ(bal):"✓"}</td><td class="c">${pillFor(r.st)}</td><td class="r">${pct(r.c.fill)}</td></tr>`}
+  $("#todayTbl").innerHTML=h+"</tbody>";
+  bindActInputs($("#todayTbl"),renderToday);
+}
+["#tdSearch","#tdStatus","#tdCarry"].forEach(s=>$(s).addEventListener("input",renderToday));
+
+function bindActInputs(root,rerender){
+  $$("input.cell[data-loc]",root).forEach(inp=>{
+    inp.addEventListener("change",()=>{const l=S.lines[inp.dataset.id];if(!l)return;l.act=l.act||{};const loc=inp.dataset.loc;l.act[loc]=l.act[loc]||[];l.act[loc][+inp.dataset.d]=inp.value===""?"":num(inp.value);put("line",l);refresh(rerender)});
+    inp.addEventListener("keydown",keyNav);
+  });
+}
+
+/* =====================================================================
+   WEEKLY GRID
+   ===================================================================== */
+function visibleLocs(){const all=S.settings.locations;const sh=S.settings.showLocs;return sh?all.filter(x=>sh.includes(x)):all}
+function gridFiltered(){
+  const q=$("#gSearch").value.trim().toLowerCase(),sup=$("#gSupplier").value,rt=$("#gRoute").value,st=$("#gStatus").value,only=$("#gOnlyOrd").checked;
+  return weekLines(curWeek).filter(l=>{
+    if(q&&!(`${l.supplier} ${l.code} ${l.desc} ${l.newCode} ${l.newDesc} ${l.po} ${l.prs}`.toLowerCase().includes(q)))return false;
+    if(sup&&firstWord(l.supplier)!==sup)return false;
+    if(rt&&(l.route||"")!==rt)return false;
+    const c=lineCalc(l);
+    if(only&&!c.O&&!c.A)return false;
+    if(st&&c.status!==st)return false;
+    return true;
+  }).sort((a,b)=>(a.sort??0)-(b.sort??0)||String(a.supplier).localeCompare(b.supplier)||String(a.desc).localeCompare(b.desc));
+}
+function fillSelect(sel,vals,first){const cur=sel.value;sel.innerHTML=`<option value="">${first}</option>`+vals.map(v=>`<option${v===cur?" selected":""}>${esc(v)}</option>`).join("")}
+function renderGrid(){
+  const nd=nDays(),locs=visibleLocs(),wl=weekLines(curWeek);
+  fillSelect($("#gSupplier"),[...new Set(wl.map(l=>firstWord(l.supplier)).filter(Boolean))].sort(),"All suppliers");
+  fillSelect($("#gRoute"),[...new Set(wl.map(l=>l.route).filter(Boolean))].sort(),"All sourcing");
+  $("#gLocToggles").innerHTML=S.settings.locations.map(x=>`<label class="chk"><input type="checkbox" data-sl="${esc(x)}" ${locs.includes(x)?"checked":""}>${esc(x)}</label>`).join("");
+  $$("[data-sl]").forEach(c=>c.onchange=()=>{S.settings.showLocs=$$("[data-sl]").filter(x=>x.checked).map(x=>x.dataset.sl);put("settings",S.settings);renderGrid()});
+
+  const lines=gridFiltered(),t=totalsFor(wl),ti=todayIdx(curWeek);
+  const sts={};wl.forEach(l=>{const s=lineCalc(l).status;sts[s]=(sts[s]||0)+1});
+  $("#gridKpis").innerHTML=kpiHtml([
+    {l:"Lines this week",v:wl.length,s:`${wl.filter(l=>lineCalc(l).O>0).length} with orders`},
+    {l:"Cost order",v:peso(t.cO)},
+    {l:"Cost actual delivery",v:peso(t.cA)},
+    {l:"Order fill rate (value)",v:pct(t.fill),bar:isFinite(t.fill)?t.fill:null,cls:isFinite(t.fill)?(t.fill>=S.settings.target/100?"good":"bad"):""},
+    {l:"Short / Late / Over",v:`${sts.Short||0} / ${sts.Late||0} / ${sts.Over||0}`,cls:(sts.Short?"bad":"")},
+  ]);
+
+  if(!wl.length){
+    const prev=weekLines(addDays(curWeek,-7)).length;
+    $("#grid").innerHTML=`<tr><td class="empty" style="padding:40px">No lines for week ${isoWeek(curWeek)} yet.<br><br>
+      ${prev?`<button class="btn pri" onclick="rollOver()">⟳ Roll over ${prev} lines from last week</button> &nbsp;`:""}
+      <button class="btn ${prev?"":"pri"}" onclick="openAddMaster()">+ Add items from Master List</button></td></tr>`;
+    return;
+  }
+  const dayHead=(cls)=>Array.from({length:nd},(_,d)=>`<th class="${cls} ${d===ti?"today":""}">${DAYNAMES[d]}<br><span style="font-weight:400">${shortDate(addDays(curWeek,d))}</span></th>`).join("");
+  let h=`<thead><tr class="h1">
+    <th class="stick" rowspan="2"><input type="checkbox" id="selAll"></th>
+    <th rowspan="2" style="background:#f4edcf;color:var(--brand)">Item Code ★</th><th rowspan="2">Supplier</th><th rowspan="2">Sup. No.</th><th rowspan="2">Deliver to</th><th rowspan="2">PO No.</th><th rowspan="2">PRS No.</th>
+    <th rowspan="2">Item Description</th><th rowspan="2">New Code</th><th rowspan="2">UOM</th><th rowspan="2">Price</th>
+    <th class="ord" colspan="${nd+1}">WEEK ${isoWeek(curWeek)} ORDER</th>
+    ${locs.map(x=>`<th class="act" colspan="${nd+1}">ACTUAL DELIVERY · ${esc(x)}</th>`).join("")}
+    <th rowspan="2">Total<br>Order</th><th rowspan="2">Total<br>Delivery</th><th rowspan="2">Fill<br>Rate</th><th rowspan="2">Cost Order</th><th rowspan="2">Cost Actual</th><th rowspan="2">Status</th><th rowspan="2">Sourcing</th><th rowspan="2">Remarks</th><th rowspan="2"></th></tr>
+    <tr class="h2">${dayHead("ord")}<th class="ord">Total</th>${locs.map(()=>dayHead("act")+`<th class="act">Total</th>`).join("")}</tr></thead><tbody>`;
+  const group=$("#gGroup").checked;let lastSup=null;
+  const colspan=12+(nd+1)*(1+locs.length)+8;
+  for(const l of lines){
+    if(group&&firstWord(l.supplier)!==lastSup){lastSup=firstWord(l.supplier);const gl=lines.filter(x=>firstWord(x.supplier)===lastSup);const gt=totalsFor(gl);h+=`<tr class="secrow"><td colspan="${colspan}">${esc(l.supplier||"(no supplier)")} <span class="muted" style="font-weight:500">· ${gl.length} line(s) · ${peso(gt.cO)} ordered · fill ${pct(gt.fill)}</span></td></tr>`}
+    const c=lineCalc(l);const flags=lineFlags(l);
+    const ed=(f,cls="t",w="")=>`<td><input size="1" class="cell ${cls}" data-id="${l.id}" data-f="${f}" value="${esc(l[f]??"")}" ${w}></td>`;
+    h+=`<tr data-row="${l.id}" class="${selected.has(l.id)?"sel":""}"><td class="stick c"><input type="checkbox" data-sel="${l.id}" ${selected.has(l.id)?"checked":""}></td>
+      <td style="background:${l.code&&!findItems(l.code).length?"#fff3e0":"#f8f6e8"}" title="${l.code&&!findItems(l.code).length?"Not in master list":""}"><input size="1" class="cell t" data-id="${l.id}" data-f="code" value="${esc(l.code??"")}" style="min-width:180px;font-weight:700;${l.code&&!findItems(l.code).length?"color:var(--warn)":""}" list="dlCode" placeholder="Type item code"></td>
+      ${ed("supplier","t",'style="min-width:250px" list="dlSup"')}${ed("supNo","t",'style="min-width:60px"')}
+      <td><select class="cell t" data-id="${l.id}" data-f="loc" style="border:0;background:transparent;padding:4px">${["",...S.settings.dlocs].map(x=>`<option${x===(l.loc||"")?" selected":""}>${esc(x)}</option>`).join("")}</select></td>
+      ${ed("po","t",'style="min-width:110px"')}${ed("prs","t",'style="min-width:70px"')}
+      ${ed("desc","t",'style="min-width:320px" list="dlDesc" title="'+esc(l.desc)+'"')}
+      <td class="c">${isNA(l.newCode)?`<span class="flag w">#N/A</span>`:esc(l.newCode)}</td>
+      ${ed("uom","t",'style="min-width:55px"')}${ed("price","",'style="min-width:80px" inputmode="decimal"')}`;
+    for(let d=0;d<nd;d++){const v=(l.ord||[])[d];h+=`<td class="ordc ${d===ti?"todayc":""}"><input size="1" class="cell ${num(v)?"has":""}" data-id="${l.id}" data-o="${d}" value="${esc(v??"")}" inputmode="decimal"></td>`}
+    h+=`<td class="r ordc tot">${fmtQ(c.O)}</td>`;
+    for(const x of locs){let tt=0;for(let d=0;d<nd;d++){const v=(l.act?.[x]||[])[d];tt+=num(v);
+        let cls=num(v)?"has":"";
+        h+=`<td class="actc ${d===ti?"todayc":""}"><input size="1" class="cell ${cls}" data-id="${l.id}" data-loc="${esc(x)}" data-d="${d}" value="${esc(v??"")}" inputmode="decimal"></td>`}
+      h+=`<td class="r actc tot">${fmtQ(tt)}</td>`}
+    h+=`<td class="r tot">${fmtQ(c.O)}</td><td class="r tot">${fmtQ(c.A)}</td><td class="r" style="color:${isFinite(c.fill)&&c.O?(c.fill>=S.settings.target/100?"var(--ok)":"var(--bad)"):""}">${c.O?pct(c.fill):""}</td>
+      <td class="r">${c.costO?fmt(c.costO,2):""}</td><td class="r">${c.costA?fmt(c.costA,2):""}</td>
+      <td class="c">${pillFor(c.status)}${flags.filter(f=>f[0]!=="#N/A code").map(f=>`<span class="flag ${f[1]}">${f[0]}</span>`).join("")}</td>
+      <td class="c">${routeTag(l.route)}</td>${ed("remarks","t",'style="min-width:170px"')}
+      <td class="c"><button class="btn sm" title="Item details" data-edit="${l.id}">⋯</button></td></tr>`;
+  }
+  h+=`</tbody>`;
+  $("#grid").innerHTML=h;
+  bindGrid();
+}
+function ensureDatalists(){
+  let d1=$("#dlCode");if(!d1){d1=document.createElement("datalist");d1.id="dlCode";document.body.appendChild(d1)}
+  let d2=$("#dlSup");if(!d2){d2=document.createElement("datalist");d2.id="dlSup";document.body.appendChild(d2)}
+  const items=Object.values(S.items);
+  const seen=new Set();d1.innerHTML=items.flatMap(i=>[i.code,isNA(i.newCode)?null:i.newCode].filter(Boolean).map(c=>({c,i}))).filter(x=>{const k=normCode(x.c);if(seen.has(k))return false;seen.add(k);return true}).map(x=>`<option value="${esc(x.c)}">${esc(x.i.desc)}</option>`).join("");
+  d2.innerHTML=[...new Set(items.map(i=>i.supplier).filter(Boolean))].sort().map(s=>`<option value="${esc(s)}">`).join("");
+  let d3=$("#dlDesc");if(!d3){d3=document.createElement("datalist");d3.id="dlDesc";document.body.appendChild(d3)}
+  d3.innerHTML=[...new Set(items.map(i=>i.desc).filter(Boolean))].sort().map(s=>`<option value="${esc(s)}">`).join("");
+}
+function bindGrid(){
+  const g=$("#grid");
+  $$("input.cell[data-f],select.cell[data-f]",g).forEach(inp=>{
+    inp.addEventListener("change",()=>{const l=S.lines[inp.dataset.id];const f=inp.dataset.f;let v=inp.value;if(f==="price")v=v===""?"":num(v);l[f]=v;
+      if(f==="code"){applyItemToLine(l,v)}
+      if(f==="desc"){const m=Object.values(S.items).filter(i=>String(i.desc).trim().toLowerCase()===String(v).trim().toLowerCase());if(m.length){const it=m.find(i=>firstWord(i.supplier)===firstWord(l.supplier))||m[0];applyItemToLine(l,it.code)}}
+      if(f==="supplier"&&l.code){const it=Object.values(S.items).find(i=>String(i.code).toUpperCase()===String(l.code).toUpperCase()&&firstWord(i.supplier)===firstWord(v));if(it&&num(it.price))l.price=it.price}
+      put("line",l);refresh(renderGrid)});
+    inp.addEventListener("keydown",keyNav);
+  });
+  $$("input.cell[data-o]",g).forEach(inp=>{
+    inp.addEventListener("change",()=>{const l=S.lines[inp.dataset.id];l.ord=l.ord||[];l.ord[+inp.dataset.o]=inp.value===""?"":num(inp.value);put("line",l);refresh(renderGrid)});
+    inp.addEventListener("keydown",keyNav);
+  });
+  bindActInputs(g,renderGrid);
+  $$("[data-sel]",g).forEach(c=>c.onchange=()=>{c.checked?selected.add(c.dataset.sel):selected.delete(c.dataset.sel);c.closest("tr").classList.toggle("sel",c.checked);$("#btnDelSel").disabled=!selected.size});
+  const sa=$("#selAll");if(sa)sa.onchange=()=>{gridFiltered().forEach(l=>sa.checked?selected.add(l.id):selected.delete(l.id));renderGrid()};
+  $$("[data-edit]",g).forEach(b=>b.onclick=()=>openLineEditor(b.dataset.edit));
+  $("#btnDelSel").disabled=!selected.size;
+}
+function normCode(c){return String(c||"").replace(/\s+/g,"").toUpperCase()}
+function findItems(code){const k=normCode(code);if(!k)return[];return Object.values(S.items).filter(i=>normCode(i.code)===k||(!isNA(i.newCode)&&normCode(i.newCode)===k))}
+function applyItemToLine(l,code,forced){
+  const cands=forced?[forced]:findItems(code);
+  if(!cands.length){toast(`Item code "${code}" is not in the master list – fill in the details or add it in Master List.`);return}
+  let it=cands.find(i=>firstWord(i.supplier)===firstWord(l.supplier));
+  if(!it&&cands.length>1&&!forced){pickSupplier(l,cands);it=cands[0]}
+  it=it||cands[0];
+  Object.assign(l,{code:it.code,desc:it.desc,newCode:it.newCode,newDesc:it.newDesc,uom:it.uom,route:it.route,group:it.group});
+  if(!l.supplier||forced)l.supplier=it.supplier;
+  if(num(it.price)&&(!num(l.price)||forced))l.price=it.price;
+  l.loc=l.loc||defaultLoc(it.route);
+}
+function pickSupplier(l,cands){
+  setTimeout(()=>openModal(`Choose supplier – ${cands[0].code}`,`<p>${esc(cands[0].desc)}</p><p class="muted">${cands.length} suppliers carry this item in the master list:</p><table class="s"><thead><tr><th>Supplier</th><th class="r">Price</th><th>Sourcing</th><th>Notes</th></tr></thead><tbody>${cands.map((c,i)=>`<tr class="click" data-pk="${i}"><td><b>${esc(c.supplier||"(no supplier)")}</b></td><td class="r">${c.price!==""?fmt(c.price,2):"—"}</td><td>${routeTag(c.route)}</td><td class="muted">${esc(c.notes||"")}</td></tr>`).join("")}</tbody></table>`,[]),50);
+  setTimeout(()=>$$("#modalRoot tr[data-pk]").forEach(tr=>tr.onclick=()=>{applyItemToLine(l,null,cands[+tr.dataset.pk]);put("line",l);closeModal();renderGrid();renderAlertBadge()}),80);
+}
+/* keyboard: Enter/arrow navigation like Excel */
+function cellKey(x){const d=x.dataset;return [d.id,d.f,d.o,d.loc,d.d,d.mi,d.k].join("|")}
+let _rt=null;
+function refresh(fn){clearTimeout(_rt);_rt=setTimeout(()=>{const a=document.activeElement;const key=a&&a.classList&&a.classList.contains("cell")?cellKey(a):null;const sel=a&&a.select&&a.selectionStart===0&&a.selectionEnd===String(a.value).length&&a.value!=="";fn();renderAlertBadge();if(key){const t=$$("input.cell,select.cell").find(x=>cellKey(x)===key);if(t){t.focus();if(sel&&t.select)t.select()}}},0)}
+function keyNav(e){
+  const k=e.key;const el=e.target;const txt=el.tagName==="INPUT";
+  const atStart=txt&&el.selectionStart===0&&el.selectionEnd===0, atEnd=txt&&el.selectionStart===String(el.value).length;
+  if(!(k==="Enter"||k==="ArrowUp"||k==="ArrowDown"||(k==="ArrowLeft"&&atStart)||(k==="ArrowRight"&&atEnd)))return;
+  if(el.tagName==="SELECT"&&(k==="ArrowUp"||k==="ArrowDown"))return;
+  const td=el.closest("td"),tr=td.closest("tr");const ci=[...tr.children].indexOf(td);
+  const up=k==="ArrowUp"||(k==="Enter"&&e.shiftKey);let target=null;
+  if(k==="Enter"||k==="ArrowDown"||k==="ArrowUp"){let r=up?tr.previousElementSibling:tr.nextElementSibling;while(r&&!(target=r.children[ci]&&r.children[ci].querySelector("input.cell,select.cell")))r=up?r.previousElementSibling:r.nextElementSibling}
+  else{let c=k==="ArrowLeft"?td.previousElementSibling:td.nextElementSibling;while(c&&!(target=c.querySelector("input.cell,select.cell")))c=k==="ArrowLeft"?c.previousElementSibling:c.nextElementSibling}
+  if(target){e.preventDefault();target.focus();if(target.select)target.select()}
+}
+["#gSearch","#gSupplier","#gRoute","#gStatus","#gOnlyOrd","#gGroup"].forEach(s=>$(s).addEventListener("input",renderGrid));
+
+$("#btnAddBlank").onclick=()=>{const l=newLine({loc:""});put("line",l);renderGrid();setTimeout(()=>{const i=$(`input[data-id="${l.id}"][data-f="code"]`);if(i){i.scrollIntoView({block:"center"});i.focus()}},30)};
+$("#btnAddMaster").onclick=()=>openAddMaster();
+$("#btnRoll").onclick=()=>rollOver();
+$("#btnDelSel").onclick=()=>{
+  if(!selected.size)return;const gone=[...selected].map(id=>S.lines[id]).filter(Boolean);
+  if(!confirm(`Delete ${gone.length} line(s) from week ${isoWeek(curWeek)}?`))return;
+  gone.forEach(l=>del("line",l.id));selected.clear();renderGrid();renderAlertBadge();
+  toast(`${gone.length} line(s) deleted`,()=>{gone.forEach(l=>put("line",l));renderGrid();renderAlertBadge()});
+};
+function newLine(p){const ls=weekLines(curWeek);return Object.assign({id:uid(),schedule:SCHEDULE,week:curWeek,supplier:"",supNo:"",loc:"BARN",po:"",prs:"",code:"",desc:"",newCode:"",newDesc:"",uom:"",price:"",ord:[],act:{},remarks:"",route:"",group:"",sort:ls.length?Math.max(...ls.map(x=>x.sort||0))+1:0},p)}
+function lineFromItem(it){return newLine({supplier:it.supplier||"",code:it.code,desc:it.desc,newCode:it.newCode,newDesc:it.newDesc,uom:it.uom,price:it.price,route:it.route,group:it.group,itemId:it.id,loc:defaultLoc(it.route)})}
+function defaultLoc(route){const u=String(route||"").toUpperCase();if(u.includes("MFI"))return"MFI";if(u.includes("MSL"))return"MSL";return"BARN"}
+
+function rollOver(){
+  const prevW=addDays(curWeek,-7),prev=weekLines(prevW);
+  if(!prev.length){toast("Last week has no lines to copy.");return}
+  const existing=weekLines(curWeek);
+  openModal(`Roll over week ${isoWeek(prevW)} → week ${isoWeek(curWeek)}`,`
+    <p>Copy <b>${prev.length}</b> line(s) from week ${isoWeek(prevW)} (${shortDate(prevW)}).${existing.length?` This week already has <b>${existing.length}</b> line(s); copied lines are added, duplicates (same supplier + item code) are skipped.`:""}</p>
+    <label class="chk" style="color:var(--ink)"><input type="checkbox" id="roPO" checked> Keep PO No. &amp; PRS No.</label><br>
+    <label class="chk" style="color:var(--ink)"><input type="checkbox" id="roOrd"> Copy order quantities (Mon–Sat)</label><br>
+    <label class="chk" style="color:var(--ink)"><input type="checkbox" id="roOpen"> Only lines that were not fully delivered, carrying the undelivered balance to Monday</label><br>
+    <label class="chk" style="color:var(--ink)"><input type="checkbox" id="roRem" checked> Keep remarks</label>`,
+    [{t:"Copy lines",cls:"pri",fn:()=>{
+      const keepPO=$("#roPO").checked,keepOrd=$("#roOrd").checked,onlyOpen=$("#roOpen").checked,keepRem=$("#roRem").checked;
+      const have=new Set(existing.map(l=>firstWord(l.supplier)+"|"+String(l.code).toUpperCase()));let n=0;
+      prev.forEach((p,i)=>{const c=lineCalc(p);if(onlyOpen&&!(c.O>c.A))return;const key=firstWord(p.supplier)+"|"+String(p.code).toUpperCase();if(have.has(key)&&p.code)return;
+        const l=Object.assign(JSON.parse(JSON.stringify(p)),{id:uid(),week:curWeek,act:{},sort:i});
+        if(!keepPO){l.po="";l.prs=""}
+        l.ord=onlyOpen?[c.O-c.A]:(keepOrd?l.ord:[]);
+        if(!keepRem)l.remarks="";
+        if(onlyOpen)l.remarks=(l.remarks?l.remarks+" · ":"")+`Balance from WK ${isoWeek(prevW)}`;
+        put("line",l);n++});
+      closeModal();renderAll();toast(`${n} line(s) copied into week ${isoWeek(curWeek)}`);
+    }}]);
+}
+
+/* ---------- Add from Master modal ---------- */
+function openAddMaster(){
+  const items=Object.values(S.items);const sel=new Set();
+  const routes=[...new Set(items.map(i=>i.route).filter(Boolean))].sort();
+  openModal("Add items from Master List",`
+    <div class="toolbar" style="margin:0 0 8px">
+      <input class="txt" id="amQ" placeholder="Search code / description / supplier" style="flex:1;min-width:200px">
+      <select class="txt" id="amR"><option value="">All sourcing</option>${routes.map(r=>`<option>${esc(r)}</option>`).join("")}</select>
+      <label class="chk"><input type="checkbox" id="amHide" checked> Hide items already in this week</label>
+      <button class="btn sm" id="amAll">Select all shown</button>
+    </div>
+    <div style="max-height:52vh;overflow:auto;border:1px solid var(--line);border-radius:8px"><table class="s" id="amT"></table></div>`,
+    [{t:"Add selected",cls:"pri",id:"amAdd",fn:()=>{const pick=items.filter(i=>sel.has(i.id));pick.forEach(it=>put("line",lineFromItem(it)));closeModal();renderAll();toast(`${pick.length} line(s) added`)}}]);
+  const inWeek=new Set(weekLines(curWeek).map(l=>firstWord(l.supplier)+"|"+String(l.code).toUpperCase()));
+  const draw=()=>{const q=$("#amQ").value.toLowerCase(),r=$("#amR").value,hide=$("#amHide").checked;
+    const list=items.filter(i=>(!q||`${i.code} ${i.desc} ${i.newCode} ${i.newDesc} ${i.supplier}`.toLowerCase().includes(q))&&(!r||i.route===r)&&(!hide||!inWeek.has(firstWord(i.supplier)+"|"+String(i.code).toUpperCase()))).sort((a,b)=>String(a.supplier).localeCompare(b.supplier));
+    $("#amT").innerHTML=`<thead><tr><th></th><th>Supplier</th><th>Item code</th><th>Description</th><th>UOM</th><th class="r">Price</th><th>Group</th><th>Sourcing</th></tr></thead><tbody>`+list.slice(0,600).map(i=>`<tr class="click" data-i="${i.id}"><td><input type="checkbox" ${sel.has(i.id)?"checked":""}></td><td>${esc(i.supplier)||'<span class="flag">No supplier</span>'}</td><td>${esc(i.code)}</td><td>${esc(i.desc)}</td><td>${esc(i.uom)}</td><td class="r">${i.price!==""?fmt(i.price,2):'<span class="flag">—</span>'}</td><td>${esc(i.group)}</td><td>${routeTag(i.route)}</td></tr>`).join("")+"</tbody>";
+    $$("#amT tr[data-i]").forEach(tr=>tr.onclick=e=>{const id=tr.dataset.i;sel.has(id)?sel.delete(id):sel.add(id);tr.querySelector("input").checked=sel.has(id);$("#amAdd").textContent=`Add selected (${sel.size})`});
+    $("#amAll").onclick=()=>{list.forEach(i=>sel.add(i.id));draw();$("#amAdd").textContent=`Add selected (${sel.size})`};
+  };
+  ["#amQ","#amR","#amHide"].forEach(s=>$(s).addEventListener("input",draw));draw();setTimeout(()=>$("#amQ").focus(),50);
+}
+
+/* ---------- Line editor ---------- */
+function openLineEditor(id){
+  const l=S.lines[id];if(!l)return;
+  const F=[["supplier","Supplier","w2"],["supNo","Supplier No."],["loc","Deliver to"],["po","PO No."],["prs","PRS No."],["code","Item Code"],["uom","UOM"],["desc","Item Description","w4"],["newCode","New Item Code"],["newDesc","New Item Description","w2"],["price","Price"],["route","Sourcing"],["group","Group"],["remarks","Remarks","w2"]];
+  openModal("Line details",`<div class="form">${F.map(([k,t,w])=>`<label class="${w||""}">${t}<input class="txt" data-k="${k}" value="${esc(l[k]??"")}"></label>`).join("")}</div>`,
+    [{t:"Delete line",cls:"danger",fn:()=>{const copy=JSON.parse(JSON.stringify(l));del("line",id);closeModal();renderAll();toast("Line deleted",()=>{put("line",copy);renderAll()})}},
+     {t:"Save",cls:"pri",fn:()=>{$$("#modalRoot [data-k]").forEach(i=>{l[i.dataset.k]=i.dataset.k==="price"?(i.value===""?"":num(i.value)):i.value});put("line",l);closeModal();renderAll()}}]);
+}
+
+/* =====================================================================
+   SUMMARY
+   ===================================================================== */
+function periodWeeks(){const n=+$("#sumPeriod").value;return Array.from({length:n},(_,i)=>addDays(curWeek,-7*i))}
+function renderSummary(){
+  const weeks=periodWeeks(),tgt=S.settings.target/100;$("#sumTarget").textContent=S.settings.target+"%";
+  const lines=weeks.flatMap(w=>weekLines(w));
+  const t=totalsFor(lines);
+  const bySup={},byRoute={},byLoc={};
+  for(const l of lines){const c=lineCalc(l);if(!c.O&&!c.A)continue;const k=firstWord(l.supplier)||"—";
+    const s=bySup[k]=bySup[k]||{name:l.supplier||"(no supplier)",n:0,O:0,A:0,cO:0,cA:0,short:0,late:0,over:0,complete:0};
+    s.n++;s.O+=c.O;s.A+=c.A;s.cO+=c.costO;s.cA+=c.costA;if(c.status==="Short")s.short++;if(c.status==="Late")s.late++;if(c.status==="Over")s.over++;if(c.status==="Complete")s.complete++;
+    const r=byRoute[l.route||"(none)"]=byRoute[l.route||"(none)"]||{n:0,cO:0,cA:0};r.n++;r.cO+=c.costO;r.cA+=c.costA;
+    for(const loc in (l.act||{})){const q=(l.act[loc]||[]).reduce((a,b)=>a+num(b),0);if(!q)continue;const b=byLoc[loc]=byLoc[loc]||{q:0,v:0,n:0};b.q+=q;b.v+=q*num(l.price);b.n++}
+  }
+  const sups=Object.values(bySup).sort((a,b)=>(a.cO?a.cA/a.cO:1)-(b.cO?b.cA/b.cO:1));
+  const below=sups.filter(s=>s.cO&&s.cA/s.cO<tgt).length;
+  $("#sumKpis").innerHTML=kpiHtml([
+    {l:"Suppliers with orders",v:sups.length,s:`${below} below ${S.settings.target}% target`},
+    {l:"Cost order",v:peso(t.cO)},{l:"Cost actual",v:peso(t.cA)},
+    {l:"Overall fill rate (value)",v:pct(t.fill),bar:isFinite(t.fill)?t.fill:null,cls:isFinite(t.fill)?(t.fill>=tgt?"good":"bad"):""},
+    {l:"Qty fill rate",v:pct(t.O?t.A/t.O:NaN)},
+  ]);
+  $("#sumSup").innerHTML=sups.length?`<thead><tr><th>Supplier</th><th class="r">Lines</th><th class="r">Ordered qty</th><th class="r">Delivered qty</th><th class="r">Cost order</th><th class="r">Cost actual</th><th class="r">Fill rate</th><th style="width:140px"></th><th class="r">Complete</th><th class="r">Late</th><th class="r">Short</th><th class="r">Over</th></tr></thead><tbody>`+
+    sups.map(s=>{const f=s.cO?s.cA/s.cO:(s.O?s.A/s.O:NaN);return `<tr class="click" data-sup="${esc(firstWord(s.name))}"><td>${esc(s.name)}</td><td class="r">${s.n}</td><td class="r">${fmtQ(s.O)}</td><td class="r">${fmtQ(s.A)}</td><td class="r">${fmt(s.cO,2)}</td><td class="r">${fmt(s.cA,2)}</td><td class="r" style="font-weight:700;color:${f>=tgt?"var(--ok)":"var(--bad)"}">${pct(f)}</td><td><div class="bar" style="margin:0"><i class="${f<tgt?(f<.8?"low":"mid"):""}" style="width:${Math.min(100,(f||0)*100)}%"></i></div></td><td class="r">${s.complete||""}</td><td class="r">${s.late||""}</td><td class="r" style="color:var(--bad)">${s.short||""}</td><td class="r">${s.over||""}</td></tr>`}).join("")+"</tbody>":`<tr><td class="empty">No orders in this period.</td></tr>`;
+  $$("#sumSup tr[data-sup]").forEach(tr=>tr.onclick=()=>{goGrid({supplier:tr.dataset.sup})});
+  const rt=Object.entries(byRoute).sort((a,b)=>b[1].cO-a[1].cO);
+  $("#sumRoute").innerHTML=`<thead><tr><th>Sourcing</th><th class="r">Lines</th><th class="r">Cost order</th><th class="r">Cost actual</th><th class="r">Fill</th></tr></thead><tbody>`+(rt.map(([k,v])=>`<tr><td>${routeTag(k)}</td><td class="r">${v.n}</td><td class="r">${fmt(v.cO,2)}</td><td class="r">${fmt(v.cA,2)}</td><td class="r">${pct(v.cO?v.cA/v.cO:NaN)}</td></tr>`).join("")||`<tr><td colspan="5" class="empty">—</td></tr>`)+"</tbody>";
+  const lc=Object.entries(byLoc).sort((a,b)=>b[1].v-a[1].v);
+  $("#sumLoc").innerHTML=`<thead><tr><th>Receiving point</th><th class="r">Lines</th><th class="r">Qty received</th><th class="r">Value received</th></tr></thead><tbody>`+(lc.map(([k,v])=>`<tr><td><b>${esc(k)}</b></td><td class="r">${v.n}</td><td class="r">${fmtQ(v.q)}</td><td class="r">${fmt(v.v,2)}</td></tr>`).join("")||`<tr><td colspan="4" class="empty">No deliveries recorded.</td></tr>`)+"</tbody>";
+  const tr=[...weeks].reverse().map(w=>{const tt=totalsFor(weekLines(w));return {w,...tt}});
+  $("#sumTrend").innerHTML=`<thead><tr><th>Week</th><th>Dates</th><th class="r">Cost order</th><th class="r">Cost actual</th><th class="r">Fill rate</th><th style="width:200px"></th></tr></thead><tbody>`+tr.map(x=>`<tr class="click" data-w="${x.w}"><td><b>WK ${isoWeek(x.w)}</b></td><td>${shortDate(x.w)} – ${shortDate(addDays(x.w,nDays()-1))}</td><td class="r">${fmt(x.cO,2)}</td><td class="r">${fmt(x.cA,2)}</td><td class="r" style="font-weight:700;color:${isFinite(x.fill)?(x.fill>=tgt?"var(--ok)":"var(--bad)"):""}">${pct(x.fill)}</td><td><div class="bar" style="margin:0"><i class="${x.fill<tgt?(x.fill<.8?"low":"mid"):""}" style="width:${Math.min(100,(x.fill||0)*100)}%"></i></div></td></tr>`).join("")+"</tbody>";
+  $$("#sumTrend tr[data-w]").forEach(r=>r.onclick=()=>{curWeek=r.dataset.w;goGrid({})});
+}
+$("#sumPeriod").onchange=renderSummary;
+function goGrid(f){$("#gSearch").value=f.search||"";$("#gStatus").value=f.status||"";$("#gOnlyOrd").checked=!!f.only;$("#tabs [data-v=grid]").click();if(f.supplier){$("#gSupplier").value=f.supplier;renderGrid()}if(f.line)setTimeout(()=>{const r=$(`tr[data-row="${f.line}"]`);if(r){r.scrollIntoView({block:"center"});r.classList.add("sel");setTimeout(()=>r.classList.remove("sel"),1800)}},50)}
+
+/* =====================================================================
+   ALERTS
+   ===================================================================== */
+function computeAlerts(week){
+  const tgt=S.settings.target/100,out={short:[],late:[],over:[],below:[],nopo:[],noprice:[],na:[],nosup:[]};
+  for(const l of weekLines(week)){const c=lineCalc(l);const hasOrd=c.O>0;
+    if(c.status==="Short")out.short.push({l,c,info:`${fmtQ(c.behindNow)} ${l.uom||""} behind schedule · missed ${c.behindDays.map(d=>DAYNAMES[d]).join(", ")}`});
+    if(c.status==="Late")out.late.push({l,c,info:`Behind on ${c.behindDays.map(d=>DAYNAMES[d]).join(", ")}, completed later`});
+    if(c.status==="Over")out.over.push({l,c,info:`Delivered ${fmtQ(c.A)} vs ordered ${fmtQ(c.O)} (+${fmtQ(c.A-c.O)})`});
+    if(hasOrd&&c.ti>=nDays()-1&&c.fill<tgt&&c.status!=="Over")out.below.push({l,c,info:`Fill ${pct(c.fill)} vs target ${S.settings.target}%`});
+    if(hasOrd){const f=lineFlags(l).map(x=>x[0]);
+      if(f.includes("No PO"))out.nopo.push({l,c,info:l.po?`PO field: "${l.po}"`:"PO No. blank"});
+      if(f.includes("No price"))out.noprice.push({l,c,info:"Cost cannot be computed"});
+      if(f.includes("#N/A code"))out.na.push({l,c,info:"New item code not mapped"});
+      if(f.includes("No supplier"))out.nosup.push({l,c,info:"Supplier blank"});}
+  }
+  return out;
+}
+function renderAlertBadge(){setTimeout(renderGreeting,0);const a=computeAlerts(curWeek);const n=a.short.length+a.late.length+a.over.length+a.below.length+a.nopo.length+a.noprice.length+a.nosup.length;const b=$("#alertBadge");b.textContent=n;b.classList.toggle("zero",!n)}
+function renderAlerts(){
+  const a=computeAlerts(curWeek);
+  const G=[["short","Short – order day passed, qty not complete","p-short"],["below","Below fill-rate target (week closed)","p-short"],["nopo","Ordered without a valid PO","p-short"],["noprice","Ordered without a price","p-late"],["late","Late – completed after the scheduled day","p-late"],["over","Over-delivery","p-over"],["nosup","No supplier","p-late"],["na","New item code #N/A (for mapping)","p-sch"]];
+  const html=G.map(([k,t,cls])=>{const L=a[k];if(!L.length)return"";return `<div class="panel alertgrp"><h4><span class="pill ${cls}">${L.length}</span> ${t}</h4><table class="s"><thead><tr><th>Supplier</th><th>PO No.</th><th>Item</th><th>Deliver to</th><th class="r">Ordered</th><th class="r">Delivered</th><th>Detail</th></tr></thead><tbody>${L.map(x=>`<tr class="click" data-l="${x.l.id}"><td>${esc(x.l.supplier)}</td><td>${esc(x.l.po)}</td><td>${esc(x.l.desc)}</td><td>${esc(x.l.loc)}</td><td class="r">${fmtQ(x.c.O)}</td><td class="r">${fmtQ(x.c.A)}</td><td class="muted">${esc(x.info)}</td></tr>`).join("")}</tbody></table></div>`}).join("");
+  $("#alertBody").innerHTML=html||`<div class="panel empty">No alerts for week ${isoWeek(curWeek)}. 👍</div>`;
+  $$("#alertBody tr[data-l]").forEach(r=>r.onclick=()=>goGrid({line:r.dataset.l}));
+}
+
+/* =====================================================================
+   MASTER LIST
+   ===================================================================== */
+function renderMaster(){
+  const items=Object.values(S.items);
+  fillSelect($("#mRoute"),[...new Set(items.map(i=>i.route).filter(Boolean))].sort(),"All sourcing");
+  const q=$("#mSearch").value.toLowerCase(),r=$("#mRoute").value,g=$("#mGroup").value,na=$("#mNA").checked,np=$("#mNoPrice").checked;
+  const list=items.filter(i=>(!q||`${i.code} ${i.desc} ${i.newCode} ${i.newDesc} ${i.supplier} ${i.notes}`.toLowerCase().includes(q))&&(!r||i.route===r)&&(!g||(g==="-"?!i.group:i.group===g))&&(!na||isNA(i.newCode))&&(!np||i.price===""||i.price==null)).sort((a,b)=>String(a.supplier).localeCompare(b.supplier)||String(a.desc).localeCompare(b.desc));
+  $("#mCount").textContent=`${list.length} of ${items.length} items`;
+  const F=[["supplier","Supplier",200],["code","Item Code",130],["desc","Item Description",300],["newCode","New Code",100],["newDesc","New Description",200],["uom","UOM",60],["price","Price",80],["omp","Open Mkt Price",80],["group","Group",80],["route","Sourcing",170],["notes","Notes",220]];
+  $("#mTbl").innerHTML=`<thead><tr class="h1">${F.map(f=>`<th>${f[1]}</th>`).join("")}<th></th></tr></thead><tbody>`+list.map(i=>`<tr>${F.map(([k,_,w])=>`<td class="${k==="newCode"&&isNA(i.newCode)?"":""}"><input size="1" class="cell ${k==="price"||k==="omp"?"":"t"}" style="min-width:${w}px;${k==="newCode"&&isNA(i.newCode)?"color:var(--warn);font-weight:700":""}" data-mi="${i.id}" data-k="${k}" value="${esc(i[k]??"")}"></td>`).join("")}<td class="c"><button class="btn sm danger" data-mdel="${i.id}">✕</button></td></tr>`).join("")+"</tbody>";
+  $$("#mTbl [data-mi]").forEach(inp=>{inp.onchange=()=>{const it=S.items[inp.dataset.mi];const k=inp.dataset.k;it[k]=(k==="price"||k==="omp")?(inp.value===""?"":num(inp.value)):inp.value;put("item",it);ensureDatalists()};inp.addEventListener("keydown",keyNav)});
+  $$("#mTbl [data-mdel]").forEach(b=>b.onclick=()=>{const it=S.items[b.dataset.mdel];del("item",it.id);renderMaster();ensureDatalists();toast("Item removed",()=>{put("item",it);renderMaster();ensureDatalists()})});
+}
+["#mSearch","#mRoute","#mGroup","#mNA","#mNoPrice"].forEach(s=>$(s).addEventListener("input",renderMaster));
+$("#btnMAdd").onclick=()=>{const it={id:uid(),supplier:"",code:"",desc:"",newCode:"",newDesc:"",uom:"",price:"",group:"",route:"",notes:"",omp:""};put("item",it);$("#mSearch").value="";renderMaster();const i=$(`[data-mi="${it.id}"][data-k="supplier"]`);if(i){i.scrollIntoView({block:"center"});i.focus()}};
+$("#mFile").onchange=async e=>{
+  const f=e.target.files[0];e.target.value="";if(!f)return;
+  if(typeof XLSX==="undefined"){toast("Excel library not loaded – check internet connection");return}
+  const wb=XLSX.read(await f.arrayBuffer(),{type:"array"});
+  // find sheet + header row containing "Item Code"
+  let rows=null;
+  for(const n of wb.SheetNames){const a=XLSX.utils.sheet_to_json(wb.Sheets[n],{header:1,defval:""});const hi=a.findIndex(r=>r.some(c=>/item\s*code/i.test(String(c))));if(hi>=0){rows={h:a[hi].map(x=>String(x).trim().toLowerCase()),d:a.slice(hi+1)};break}}
+  if(!rows){toast("No 'Item Code' header found in the file");return}
+  const col=(...names)=>{for(const n of names){const i=rows.h.findIndex(h=>h===n);if(i>=0)return i}for(const n of names){const i=rows.h.findIndex(h=>h.includes(n));if(i>=0)return i}return -1};
+  const C={supplier:col("supplier","supplier 1"),code:col("item code"),desc:col("item description","description"),newCode:col("new item code"),newDesc:col("new item description"),uom:col("uom","primary uom"),price:col("price"),group:col("group"),route:col("remarks","sourcing"),omp:col("open market price")};
+  const parsed=rows.d.map(r=>{const o={};for(const k in C)o[k]=C[k]>=0?String(r[C[k]]??"").replace(/ /g," ").trim():"";o.price=o.price===""?"":num(o.price);o.omp=o.omp===""?"":num(o.omp);return o}).filter(o=>o.code||o.desc);
+  openModal("Import master list",`<p>Found <b>${parsed.length}</b> items in <b>${esc(f.name)}</b>.</p>
+    <label class="chk" style="color:var(--ink)"><input type="radio" name="imode" value="merge" checked> Merge – update matching items (same supplier + item code), add new ones</label><br>
+    <label class="chk" style="color:var(--ink)"><input type="radio" name="imode" value="replace"> Replace – remove the current master list first</label>
+    <p class="muted">Weekly lines are not changed.</p>`,
+    [{t:"Import",cls:"pri",fn:()=>{const mode=$('input[name=imode]:checked').value;
+      if(mode==="replace")Object.keys(S.items).forEach(id=>del("item",id));
+      const idx={};Object.values(S.items).forEach(i=>idx[firstWord(i.supplier)+"|"+String(i.code).toUpperCase()]=i);
+      let a=0,u=0;parsed.forEach(o=>{const k=firstWord(o.supplier)+"|"+String(o.code).toUpperCase();const ex=idx[k];if(ex){Object.keys(o).forEach(x=>{if(o[x]!==""&&o[x]!=null)ex[x]=o[x]});put("item",ex);u++}else{put("item",{id:uid(),notes:"",...o});a++}});
+      closeModal();ensureDatalists();renderMaster();toast(`${a} added · ${u} updated`)}}]);
+};
+$("#btnMExport").onclick=()=>{if(typeof XLSX==="undefined")return toast("Excel library not loaded");const rows=Object.values(S.items).sort((a,b)=>String(a.supplier).localeCompare(b.supplier)).map(i=>({SUPPLIER:i.supplier,"Item Code":i.code,"Item Description":i.desc,"New Item Code":i.newCode,"New Item Description":i.newDesc,UOM:i.uom,PRICE:i.price,Group:i.group,REMARKS:i.route,NOTES:i.notes,"OPEN MARKET PRICE":i.omp}));const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(rows),"MASTERLIST");XLSX.writeFile(wb,"BARN_MASTERLIST_"+iso(new Date())+".xlsx")};
+
+/* =====================================================================
+   SETTINGS
+   ===================================================================== */
+function renderSettings(){
+  const chips=(arr,key)=>arr.map((x,i)=>`<span class="chip">${esc(x)}<button data-k="${key}" data-i="${i}" title="Remove">×</button></span>`).join("");
+  $("#locChips").innerHTML=chips(S.settings.locations,"locations");
+  $("#dlocChips").innerHTML=chips(S.settings.dlocs,"dlocs");
+  $$(".chip button").forEach(b=>b.onclick=()=>{const k=b.dataset.k;const v=S.settings[k][+b.dataset.i];
+    if(k==="locations"){const used=Object.values(S.lines).some(l=>(l.act?.[v]||[]).some(x=>num(x)));if(used&&!confirm(`"${v}" has recorded deliveries. Removing it hides those quantities (they are kept and come back if you re-add "${v}"). Continue?`))return}
+    S.settings[k].splice(+b.dataset.i,1);put("settings",S.settings);renderSettings()});
+  $("#setTarget").value=S.settings.target;$("#setName").value=S.settings.userName||"";$("#setDays").value=S.settings.days;
+  const n=Object.keys(S.lines).length,w=new Set(Object.values(S.lines).map(l=>l.week)).size;
+  $("#dataInfo").innerHTML=`${Object.keys(S.items).length} master items · ${n} lines across ${w} week(s) · storage: <b>${mode==="cloud"?"Supabase (signed in as "+esc(user.email)+")":"this browser only"}</b>`;
+}
+function addChip(key,inp){const v=$(inp).value.trim().toUpperCase();if(!v)return;if(!S.settings[key].includes(v))S.settings[key].push(v);$(inp).value="";put("settings",S.settings);renderSettings()}
+$("#locAdd").onclick=()=>addChip("locations","#locNew");$("#locNew").onkeydown=e=>{if(e.key==="Enter")addChip("locations","#locNew")};
+$("#dlocAdd").onclick=()=>addChip("dlocs","#dlocNew");$("#dlocNew").onkeydown=e=>{if(e.key==="Enter")addChip("dlocs","#dlocNew")};
+$("#setTarget").onchange=e=>{S.settings.target=Math.min(100,Math.max(1,num(e.target.value)||95));put("settings",S.settings);renderAlertBadge()};
+$("#setName").onchange=e=>{S.settings.userName=e.target.value.trim();put("settings",S.settings);renderGreeting()};
+$("#setDays").onchange=e=>{S.settings.days=+e.target.value;put("settings",S.settings);renderWeek()};
+$("#btnBackup").onclick=()=>{const blob=new Blob([JSON.stringify({exported:new Date().toISOString(),...S},null,1)],{type:"application/json"});const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="barn_delivery_tracker_backup_"+iso(new Date())+".json";a.click()};
+$("#restoreFile").onchange=async e=>{const f=e.target.files[0];e.target.value="";if(!f)return;try{const d=JSON.parse(await f.text());if(!confirm(`Restore ${Object.keys(d.items||{}).length} items and ${Object.keys(d.lines||{}).length} lines? Matching records are overwritten; nothing is deleted.`))return;Object.values(d.items||{}).forEach(i=>put("item",i));Object.values(d.lines||{}).forEach(l=>put("line",l));if(d.settings)put("settings",{...d.settings,id:"main"});renderAll();toast("Backup restored")}catch(err){toast("Not a valid backup file")}};
+$("#btnReseed").onclick=()=>{if(!confirm("Add back the original Barn master list items that are missing? (Existing items are kept.)"))return;const have=new Set(Object.values(S.items).map(i=>firstWord(i.supplier)+"|"+String(i.code).toUpperCase()));let n=0;MASTER_SEED.forEach(r=>{const k=firstWord(r[0])+"|"+String(r[1]).toUpperCase();if(have.has(k))return;have.add(k);const [supplier,code,desc,newCode,newDesc,uom,price,group,route,notes,omp]=r;put("item",{id:uid(),supplier,code,desc,newCode,newDesc,uom,price,group,route,notes,omp});n++});ensureDatalists();renderAll();toast(n+" item(s) restored")};
+
+/* =====================================================================
+   EXPORT (Excel, same layout as the weekly schedule sheet)
+   ===================================================================== */
+/* ---- Barn Delivery Schedule export: same layout & styling as the weekly schedule workbook ---- */
+function loadScript(src){return new Promise((ok,no)=>{const x=document.createElement("script");x.src=src;x.onload=ok;x.onerror=no;document.head.appendChild(x)})}
+$("#btnExport").onclick=async()=>{
+  try{if(typeof ExcelJS==="undefined"){toast("Preparing Excel…");await loadScript("https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js")}}
+  catch(e){return toast("Could not load the Excel library – check internet connection")}
+  const btn=$("#btnExport");btn.disabled=true;
+  try{await exportBarnSchedule()}catch(e){console.error(e);toast("Export failed: "+e.message)}finally{btn.disabled=false}
+};
+async function exportBarnSchedule(){
+  const nd=nDays(),locs=S.settings.locations,wk=isoWeek(curWeek);
+  const lines=weekLines(curWeek).slice().sort((a,b)=>String(a.supplier).localeCompare(b.supplier)||(a.sort??0)-(b.sort??0)||String(a.desc).localeCompare(b.desc));
+  if(!lines.length)return toast("No lines in week "+wk+" to export");
+  const wb=new ExcelJS.Workbook();wb.creator="Barn Daily Delivery Tracker";
+  const ws=wb.addWorksheet("WEEK "+wk,{views:[{state:"frozen",xSplit:7,ySplit:3,zoomScale:70}],properties:{defaultRowHeight:15}});
+  const C=n=>{let s="";while(n>0){const m=(n-1)%26;s=String.fromCharCode(65+m)+s;n=Math.floor((n-1)/26)}return s};
+  // ---- column map (matches reference: A..L fixed, M.. days, then totals, X remarks, Y.. actual blocks)
+  const cDay0=13, cTotO=cDay0+nd, cTotD=cTotO+1, cFill=cTotO+2, cCostO=cTotO+3, cCostA=cTotO+4, cRem=cTotO+5;
+  const blk0=cRem+1; // each block: [location total][nd day cols][spacer]
+  const blkW=nd+2, lastCol=blk0+blkW*locs.length-2;
+  const PESO='_-[$₱-3409]* #,##0.00_-;\\-[$₱-3409]* #,##0.00_-;_-[$₱-3409]* "-"??_-;_-@_-';
+  const DATEF='[$-409]d\\-mmm;@';
+  const YEL={type:"pattern",pattern:"solid",fgColor:{argb:"FFFFFF00"}};
+  const RED={type:"pattern",pattern:"solid",fgColor:{argb:"FFC00000"}};
+  const WHITE={type:"pattern",pattern:"solid",fgColor:{argb:"FFFFFFFF"}};
+  const GOLD={type:"pattern",pattern:"solid",fgColor:{argb:"FFFFF2CC"}};
+  const thin={style:"thin",color:{argb:"FF000000"}};const ALL={top:thin,left:thin,bottom:thin,right:thin};
+  const hdrFont={name:"Tahoma",size:12,bold:true};const CEN={horizontal:"center",vertical:"middle",wrapText:true};
+  // widths (from reference)
+  const W={1:59.6,2:12,3:33.2,4:19.9,5:17,6:21.4,7:61.1,8:21.1,9:61.1,10:10.9,11:13,12:14.3};
+  for(const k in W)ws.getColumn(+k).width=W[k];
+  for(let d=0;d<nd;d++)ws.getColumn(cDay0+d).width=14.6;
+  [[cTotO,15],[cTotD,12.3],[cFill,15.6],[cCostO,26.7],[cCostA,26.4],[cRem,30]].forEach(([c,w])=>ws.getColumn(c).width=w);
+  locs.forEach((_,i)=>{const b=blk0+i*blkW;ws.getColumn(b).width=22;for(let d=0;d<nd;d++)ws.getColumn(b+1+d).width=13;if(i<locs.length-1)ws.getColumn(b+blkW-1).width=3});
+  const dates=Array.from({length:nd},(_,d)=>parseISO(addDays(curWeek,d)));
+  const utcDate=dt=>new Date(Date.UTC(dt.getFullYear(),dt.getMonth(),dt.getDate()));
+  // ---- Row 1: WEEK: nn ORDER banner over the order-day columns
+  ws.getRow(1).height=20.4;
+  ws.mergeCells(1,cDay0,1,cDay0+nd-1);
+  Object.assign(ws.getCell(1,cDay0),{value:`WEEK: ${wk} ORDER`,fill:RED,font:{name:"Tahoma",size:16,bold:true,color:{argb:"FFFFFFFF"}},alignment:CEN,border:{top:thin,left:thin,right:thin}});
+  // ---- Row 2: title, price label, day names, subtotals, ACTUAL DELIVERY labels
+  ws.getRow(2).height=30;
+  ws.mergeCells(2,1,2,7);
+  Object.assign(ws.getCell(2,1),{value:"BARN DELIVERY SCHEDULE",font:{name:"Tahoma",size:16,bold:true},alignment:CEN,border:{top:thin,left:thin}});
+  Object.assign(ws.getCell(2,12),{value:`WEEK ${wk} Price`,fill:WHITE,font:hdrFont,alignment:CEN,border:ALL,numFmt:"#,##0.00"});
+  for(let d=0;d<nd;d++)Object.assign(ws.getCell(2,cDay0+d),{value:{formula:`TEXT(${C(cDay0+d)}3,"ddd")`,result:DAYNAMES[d]},fill:WHITE,font:hdrFont,alignment:CEN,border:{top:thin,left:thin,right:thin}});
+  [cTotO,cTotD,cFill].forEach(c=>Object.assign(ws.getCell(2,c),{fill:WHITE,border:{top:thin,left:thin,right:thin}}));
+  const firstData=4,lastData=firstData+lines.length-1;
+  let tCO=0,tCA=0;lines.forEach(l=>{const c=lineCalc(l);tCO+=c.costO;tCA+=c.costA});
+  Object.assign(ws.getCell(2,cCostO),{value:{formula:`SUBTOTAL(9,${C(cCostO)}${firstData}:${C(cCostO)}${lastData})`,result:tCO},numFmt:PESO,fill:WHITE,font:hdrFont,alignment:CEN,border:{top:thin,left:thin,right:thin}});
+  Object.assign(ws.getCell(2,cCostA),{value:{formula:`SUBTOTAL(9,${C(cCostA)}${firstData}:${C(cCostA)}${lastData})`,result:tCA},numFmt:PESO,fill:WHITE,font:hdrFont,alignment:CEN,border:{top:thin,left:thin,right:thin}});
+  locs.forEach((_,i)=>{const b=blk0+i*blkW;ws.mergeCells(2,b,2,b+nd);Object.assign(ws.getCell(2,b),{value:"ACTUAL DELIVERY",fill:YEL,font:hdrFont,alignment:CEN,border:ALL})});
+  // ---- Row 3: column headers (yellow)
+  ws.getRow(3).height=45;
+  const H=["SUPPLIER","Supplier No.","Delivery Location","PO No.","PRS NO","Item Code","Item Description","new Item Code","new Item Description","UOM","new UOM","PRICE"];
+  H.forEach((h,i)=>Object.assign(ws.getCell(3,i+1),{value:h,fill:YEL,font:hdrFont,alignment:CEN,border:ALL}));
+  for(let d=0;d<nd;d++)Object.assign(ws.getCell(3,cDay0+d),{value:utcDate(dates[d]),numFmt:DATEF,fill:YEL,font:hdrFont,alignment:CEN,border:ALL});
+  [[cTotO,"TOTAL ORDER"],[cTotD,"TOTAL DELIVERY"],[cFill,"ORDER FILL RATE"],[cCostO,"COST ORDER"],[cCostA,"COST ACTUAL DELIVERY"],[cRem,"REMARKS"]].forEach(([c,h])=>Object.assign(ws.getCell(3,c),{value:h,fill:YEL,font:hdrFont,alignment:CEN,border:ALL}));
+  locs.forEach((x,i)=>{const b=blk0+i*blkW;Object.assign(ws.getCell(3,b),{value:x,fill:YEL,font:hdrFont,alignment:CEN,border:ALL});
+    for(let d=0;d<nd;d++)Object.assign(ws.getCell(3,b+1+d),{value:utcDate(dates[d]),numFmt:DATEF,fill:YEL,font:hdrFont,alignment:CEN,border:ALL})});
+  // ---- Data rows
+  const dFont={name:"Arial",size:10},dFontB={name:"Arial",size:10,bold:true},dAl={horizontal:"center",vertical:"middle",wrapText:true};
+  lines.forEach((l,i)=>{
+    const r=firstData+i,c=lineCalc(l),row=ws.getRow(r);
+    const nv=v=>(v===""||v==null)?null:(isNaN(Number(v))?v:Number(v));
+    const vals=[l.supplier,nv(l.supNo),l.loc,String(l.po||""),String(l.prs||""),l.code,l.desc,isNA(l.newCode)?(l.newCode?"#N/A":""):l.newCode,isNA(l.newDesc)?(l.newDesc?"#N/A":""):l.newDesc,l.uom,"",num(l.price)||null];
+    vals.forEach((v,k)=>{const cell=row.getCell(k+1);cell.value=v===""?null:v;cell.font=dFont;cell.alignment=dAl;cell.border=ALL});
+    row.getCell(12).numFmt="#,##0.00";
+    for(let d=0;d<nd;d++){const cell=row.getCell(cDay0+d);cell.value=c.ord[d]||null;cell.font=dFont;cell.alignment=dAl;cell.border=ALL;cell.numFmt="#,##0.##"}
+    const R=x=>`${C(x)}${r}`;
+    const locTotRefs=locs.map((_,j)=>R(blk0+j*blkW));
+    const set=(col,formula,result,fmt,extra={})=>Object.assign(row.getCell(col),{value:{formula,result},numFmt:fmt,font:dFontB,alignment:dAl,border:ALL},extra);
+    set(cTotO,`SUM(${R(cDay0)}:${R(cDay0+nd-1)})`,c.O,"#,##0");
+    set(cTotD,locTotRefs.join("+")||"0",c.A,"#,##0");
+    set(cFill,`IFERROR(${R(cTotD)}/${R(cTotO)},0)`,c.O?c.A/c.O:0,"0%");
+    set(cCostO,`IFERROR(${R(cTotO)}*${R(12)},0)`,c.costO,PESO,{fill:GOLD});
+    set(cCostA,`IFERROR(${R(cTotD)}*${R(12)},0)`,c.costA,PESO,{fill:GOLD});
+    Object.assign(row.getCell(cRem),{value:l.remarks||null,font:dFont,alignment:dAl,border:ALL});
+    locs.forEach((x,j)=>{const b=blk0+j*blkW;const arr=(l.act&&l.act[x])||[];let t=0;
+      for(let d=0;d<nd;d++){const v=num(arr[d]);t+=v;Object.assign(row.getCell(b+1+d),{value:v||null,font:dFont,alignment:dAl,border:ALL,numFmt:"#,##0.##"})}
+      Object.assign(row.getCell(b),{value:{formula:`SUM(${R(b+1)}:${R(b+nd)})`,result:t},font:dFontB,alignment:dAl,border:ALL,numFmt:"#,##0"})});
+  });
+  ws.autoFilter={from:{row:3,column:1},to:{row:lastData,column:lastCol}};
+  ws.pageSetup={orientation:"landscape",fitToPage:true,fitToWidth:1,fitToHeight:0,paperSize:9};
+  const buf=await wb.xlsx.writeBuffer();
+  const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([buf],{type:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"}));
+  const dd=parseISO(curWeek);a.download=`BARN_DELIVERY_SCHEDULE_WEEK_${wk}_${dd.toLocaleDateString("en-US",{month:"short"}).toUpperCase()}_${dd.getDate()}_${dd.getFullYear()}.xlsx`;
+  document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),4000);
+  toast(`Exported ${lines.length} line(s) – week ${wk}`);
+}
+$("#btnExportSum").onclick=()=>{
+  if(typeof XLSX==="undefined")return toast("Excel library not loaded");
+  const tbl=$("#sumSup");const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,XLSX.utils.table_to_sheet(tbl),"By Supplier");XLSX.utils.book_append_sheet(wb,XLSX.utils.table_to_sheet($("#sumTrend")),"Weekly Trend");XLSX.writeFile(wb,`BARN_FILL_RATE_SUMMARY_WK${isoWeek(curWeek)}.xlsx`)};
+
+/* =====================================================================
+   MODAL
+   ===================================================================== */
+function openModal(title,body,actions=[]){
+  $("#modalRoot").innerHTML=`<div class="modalbg"><div class="modal"><div class="mh"><h3>${esc(title)}</h3><button class="x" id="mClose">×</button></div><div class="mb">${body}</div><div class="mf">${actions.map((a,i)=>`<button class="btn ${a.cls||""}" data-a="${i}" ${a.id?`id="${a.id}"`:""}>${esc(a.t)}</button>`).join("")}<button class="btn" id="mCancel">Cancel</button></div></div></div>`;
+  $("#mClose").onclick=$("#mCancel").onclick=closeModal;
+  $(".modalbg").onclick=e=>{if(e.target.classList.contains("modalbg"))closeModal()};
+  actions.forEach((a,i)=>$(`[data-a="${i}"]`).onclick=a.fn);
+}
+function closeModal(){$("#modalRoot").innerHTML=""}
+document.addEventListener("keydown",e=>{if(e.key==="Escape")closeModal()});
+
+/* =====================================================================
+   AUTH & BOOT
+   ===================================================================== */
+async function start(){
+  ensureSettings();ensureDatalists();
+  const ti=todayIdx(curWeek);curDay=(ti>=0&&ti<nDays())?ti:0;
+  $("#login").classList.add("hidden");renderAll();
+}
+async function boot(){
+  try{if(localStorage.getItem("dt_barn_mode")==="local"){mode="local";cacheLoad();setSync("off","Saved on this computer");$("#btnOut").textContent="Exit offline";return start()}}catch(e){}
+  if(!window.supabase){$("#login").classList.remove("hidden");$("#lgMsg").textContent="Cannot reach Supabase (no internet?). You can use offline mode.";return}
+  sb=window.supabase.createClient(SUPA_URL,SUPA_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
+  const {data:{session}}=await sb.auth.getSession();
+  if(session){user=session.user;return afterLogin()}
+  $("#login").classList.remove("hidden");
+  sb.auth.onAuthStateChange((ev,s)=>{if(s&&!user){user=s.user;afterLogin()}});
+}
+async function afterLogin(){
+  mode="cloud";cacheLoad(); // instant paint from cache
+  try{await loadCloud()}catch(e){console.error(e);setSync("err","Offline – showing cached data")}
+  start();
+}
+$("#lgBtn").onclick=async()=>{const email=$("#lgEmail").value.trim(),password=$("#lgPass").value;if(!email||!password)return $("#lgMsg").textContent="Enter email and password.";$("#lgMsg").textContent="Signing in…";const {data,error}=await sb.auth.signInWithPassword({email,password});if(error)return $("#lgMsg").textContent=error.message;user=data.user;afterLogin()};
+$("#lgPass").onkeydown=e=>{if(e.key==="Enter")$("#lgBtn").click()};
+$("#lgLink").onclick=async()=>{const email=$("#lgEmail").value.trim();if(!email)return $("#lgMsg").textContent="Enter your email first.";const {error}=await sb.auth.signInWithOtp({email,options:{emailRedirectTo:location.href.split("#")[0],shouldCreateUser:false}});$("#lgMsg").style.color=error?"var(--bad)":"var(--ok)";$("#lgMsg").textContent=error?error.message:"Check your email for the sign-in link."};
+$("#lgLocal").onclick=()=>{try{localStorage.setItem("dt_barn_mode","local")}catch(e){}mode="local";cacheLoad();setSync("off","Saved on this computer");$("#btnOut").textContent="Exit offline";start()};
+$("#btnOut").onclick=async()=>{
+  if(mode==="local"){try{localStorage.removeItem("dt_barn_mode")}catch(e){}location.reload();return}
+  await flush();await sb.auth.signOut();location.reload();
+};
+
+/* =====================================================================
+   THEME (auto / light / dark)
+   ===================================================================== */
+const mq=window.matchMedia?matchMedia("(prefers-color-scheme: dark)"):null;
+function themePref(){try{return localStorage.getItem("dt_theme")||""}catch(e){return""}}
+function applyTheme(){const p=themePref();const dark=p?p==="dark":!!(mq&&mq.matches);document.documentElement.setAttribute("data-theme",dark?"dark":"light");
+  const b=$("#btnTheme");if(b){b.textContent=dark?"☀️":"🌙";b.title=dark?"Switch to light mode":"Switch to dark mode"}const sel=$("#setTheme");if(sel)sel.value=p}
+function setTheme(p){try{p?localStorage.setItem("dt_theme",p):localStorage.removeItem("dt_theme")}catch(e){}applyTheme()}
+$("#btnTheme").onclick=()=>setTheme(document.documentElement.getAttribute("data-theme")==="dark"?"light":"dark");
+$("#setTheme").onchange=e=>setTheme(e.target.value);
+if(mq){(mq.addEventListener?mq.addEventListener("change",applyTheme):mq.addListener(applyTheme))}
+applyTheme();
+boot();
+</script>
+</body>
+</html>
