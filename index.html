@@ -5,10 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#2c8845">
 <meta name="description" content="BARN Daily Delivery Tracker – Eight8Ate Purchasing">
-<link rel="icon" type="image/svg+xml" href="favicon.svg">
-<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
-<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
-<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/svg+xml" href="favicon.svg?v=3">
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png?v=3">
+<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png?v=3">
+<link rel="manifest" href="manifest.webmanifest?v=3">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="BARN Tracker">
@@ -1336,7 +1336,7 @@ $("#btnTheme").onclick=()=>setTheme(document.documentElement.getAttribute("data-
 $("#setTheme").onchange=e=>setTheme(e.target.value);
 if(mq){(mq.addEventListener?mq.addEventListener("change",applyTheme):mq.addListener(applyTheme))}
 applyTheme();
-if("serviceWorker" in navigator&&location.protocol.startsWith("http")){navigator.serviceWorker.register("sw.js").catch(()=>{})}
+if("serviceWorker" in navigator&&location.protocol.startsWith("http")){navigator.serviceWorker.register("sw.js?v=3").catch(()=>{})}
 boot();
 </script>
 </body>
