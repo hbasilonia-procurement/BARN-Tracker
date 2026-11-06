@@ -6,8 +6,13 @@
 <meta name="theme-color" content="#2c8845">
 <meta name="description" content="BARN Daily Delivery Tracker – Eight8Ate Purchasing">
 <link rel="icon" type="image/svg+xml" href="favicon.svg">
-<link rel="alternate icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2064%2064%22%3E%3Cdefs%3E%3ClinearGradient%20id%3D%22g%22%20x1%3D%220%22%20y1%3D%220%22%20x2%3D%221%22%20y2%3D%221%22%3E%3Cstop%20offset%3D%220%22%20stop-color%3D%22%233fae5f%22/%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%231f6b34%22/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect%20x%3D%222%22%20y%3D%222%22%20width%3D%2260%22%20height%3D%2260%22%20rx%3D%2216%22%20fill%3D%22url%28%23g%29%22/%3E%3Cpath%20d%3D%22M9%2030%20L32%2012%20L55%2030%22%20fill%3D%22none%22%20stroke%3D%22%23f4edcf%22%20stroke-width%3D%224.4%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22/%3E%3Ctext%20x%3D%2232%22%20y%3D%2245%22%20text-anchor%3D%22middle%22%20font-family%3D%22Arial%20Black%2CArial%2Csans-serif%22%20font-weight%3D%22800%22%20font-size%3D%2215.5%22%20fill%3D%22%23fff%22%20letter-spacing%3D%221%22%3EBARN%3C/text%3E%3Crect%20x%3D%2217%22%20y%3D%2249%22%20width%3D%2230%22%20height%3D%223%22%20rx%3D%221.5%22%20fill%3D%22%23e8a33a%22/%3E%3C/svg%3E">
-<link rel="apple-touch-icon" href="favicon.svg">
+<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
+<link rel="apple-touch-icon" sizes="180x180" href="icons/apple-touch-icon.png">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="BARN Tracker">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
 <title>BARN Daily Delivery Tracker</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
@@ -1299,7 +1304,7 @@ async function start(){
 async function boot(){
   try{if(localStorage.getItem("dt_barn_mode")==="local"){mode="local";cacheLoad();setSync("off","Saved on this computer");$("#btnOut").textContent="Exit offline";return start()}}catch(e){}
   if(!window.supabase){$("#login").classList.remove("hidden");$("#lgMsg").textContent="Cannot reach Supabase (no internet?). You can use offline mode.";return}
-  sb=window.supabase.createClient(SUPA_URL,SUPA_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
+  sb=window.supabase.createClient(SUPA_URL,SUPA_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,storageKey:"sb-barn-tracker-auth"}});
   const {data:{session}}=await sb.auth.getSession();
   if(session){user=session.user;return afterLogin()}
   $("#login").classList.remove("hidden");
@@ -1316,7 +1321,7 @@ $("#lgLink").onclick=async()=>{const email=$("#lgEmail").value.trim();if(!email)
 $("#lgLocal").onclick=()=>{try{localStorage.setItem("dt_barn_mode","local")}catch(e){}mode="local";cacheLoad();setSync("off","Saved on this computer");$("#btnOut").textContent="Exit offline";start()};
 $("#btnOut").onclick=async()=>{
   if(mode==="local"){try{localStorage.removeItem("dt_barn_mode")}catch(e){}location.reload();return}
-  await flush();await sb.auth.signOut();location.reload();
+  await flush();await sb.auth.signOut({scope:"local"});location.reload();
 };
 
 /* =====================================================================
@@ -1331,6 +1336,7 @@ $("#btnTheme").onclick=()=>setTheme(document.documentElement.getAttribute("data-
 $("#setTheme").onchange=e=>setTheme(e.target.value);
 if(mq){(mq.addEventListener?mq.addEventListener("change",applyTheme):mq.addListener(applyTheme))}
 applyTheme();
+if("serviceWorker" in navigator&&location.protocol.startsWith("http")){navigator.serviceWorker.register("sw.js").catch(()=>{})}
 boot();
 </script>
 </body>
