@@ -418,6 +418,38 @@ html[data-theme="dark"] table.g input[type=checkbox]{accent-color:#2c8845}
 html[data-theme="dark"]{color-scheme:dark}
 html[data-theme="dark"] .gridwrap{color-scheme:light}
 .themebtn{font-size:15px;line-height:1;padding:6px 10px!important}
+
+/* ===== Opening animation (splash) ===== */
+#sp{position:fixed;inset:0;z-index:500;display:flex;align-items:center;justify-content:center;flex-direction:column;font-family:"Plus Jakarta Sans","Segoe UI",Arial,sans-serif;
+  background:linear-gradient(135deg,#1f5a33 0%,#0d2617 45%,#07110b 80%,#1b2a17 100%);animation:spOut .6s cubic-bezier(.6,0,.4,1) 3.4s both;overflow:hidden}
+#sp::before{content:"";position:absolute;inset:-20%;background:linear-gradient(115deg,transparent 35%,rgba(244,237,207,.10) 50%,transparent 65%);animation:spSweep 1.6s ease-in-out .2s both}
+#sp .t{width:min(180px,38vw);height:min(180px,38vw);animation:spPop .55s cubic-bezier(.2,1.4,.4,1) .9s both}
+#sp .t svg{width:100%;height:100%;filter:drop-shadow(0 18px 40px rgba(0,0,0,.45))}
+#sp .bg{animation:spFade .4s ease .9s both}
+#sp .roof{stroke-dasharray:70;stroke-dashoffset:70;animation:spDraw .8s cubic-bezier(.6,0,.2,1) .3s forwards}
+#sp .L{opacity:0;transform-box:fill-box;transform-origin:50% 100%;animation:spDrop .38s cubic-bezier(.2,1.5,.4,1) both}
+#sp .L1{animation-delay:1.25s}#sp .L2{animation-delay:1.38s}#sp .L3{animation-delay:1.51s}#sp .L4{animation-delay:1.64s}
+#sp .ul{transform-box:fill-box;transform-origin:0 50%;transform:scaleX(0);animation:spGrow .45s cubic-bezier(.6,0,.2,1) 1.85s forwards}
+#sp .gl{opacity:0;animation:spGlint .7s ease 2s both}
+#sp .ti{margin-top:26px;color:#f4edcf;font-weight:800;font-size:clamp(20px,4vw,30px);letter-spacing:.3px;text-align:center;animation:spUp .6s ease 2.1s both}
+#sp .su{margin-top:6px;color:rgba(244,237,207,.65);font-weight:600;font-size:13px;letter-spacing:3px;text-transform:uppercase;animation:spUp .6s ease 2.25s both}
+#sp .ld{margin-top:30px;width:220px;height:4px;border-radius:4px;background:rgba(255,255,255,.12);overflow:hidden;animation:spUp .4s ease 2.35s both}
+#sp .ld i{display:block;height:100%;transform-origin:0 50%;transform:scaleX(0);background:linear-gradient(90deg,#3fae5f,#e8a33a);animation:spGrow .9s cubic-bezier(.4,0,.2,1) 2.45s forwards}
+#sp .ms{margin-top:10px;color:rgba(244,237,207,.55);font-size:12px;animation:spUp .4s ease 2.45s both}
+#sp .skip{position:absolute;right:18px;bottom:16px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.18);color:rgba(244,237,207,.8);border-radius:10px;padding:5px 12px;font:600 12px inherit;cursor:pointer;animation:spFade .4s ease .6s both}
+#sp .skip:hover{background:rgba(255,255,255,.16)}
+#sp.hold{animation:none}
+#sp.leave{animation:spOut .55s cubic-bezier(.6,0,.4,1) both}
+@keyframes spDraw{to{stroke-dashoffset:0}}
+@keyframes spPop{0%{transform:scale(.4) rotate(-8deg);opacity:0}100%{transform:none;opacity:1}}
+@keyframes spFade{from{opacity:0}to{opacity:1}}
+@keyframes spDrop{0%{opacity:0;transform:translateY(-14px) scale(.6)}100%{opacity:1;transform:none}}
+@keyframes spGrow{to{transform:scaleX(1)}}
+@keyframes spGlint{0%{opacity:0;transform:translateX(-40px)}40%{opacity:.9}100%{opacity:0;transform:translateX(60px)}}
+@keyframes spUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+@keyframes spSweep{from{transform:translateX(-60%)}to{transform:translateX(60%)}}
+@keyframes spOut{0%{opacity:1;transform:none;filter:none}100%{opacity:0;transform:scale(1.08);filter:blur(6px);visibility:hidden}}
+@media (prefers-reduced-motion: reduce){#sp,#sp *{animation-duration:.01s!important;animation-delay:0s!important}}
 </style>
 </head>
 <body>
@@ -572,6 +604,8 @@ html[data-theme="dark"] .gridwrap{color-scheme:light}
           <label>Weekly fill-rate target (%)<input class="txt" type="number" id="setTarget" min="1" max="100"></label>
           <label style="grid-column:span 2">Your name (for the greeting)<input class="txt" id="setName" placeholder="e.g. Hezon"></label>
           <label>Theme<select class="txt" id="setTheme"><option value="">Auto (follow computer)</option><option value="light">Light</option><option value="dark">Dark</option></select></label>
+          <label>Opening animation<select class="txt" id="setIntro"><option value="always">Every time the app opens</option><option value="daily">Once a day</option><option value="off">Off</option></select></label>
+          <label>Opening sound<select class="txt" id="setIntroSound"><option value="on">On</option><option value="off">Off</option></select></label>
           <label>Delivery days<select class="txt" id="setDays"><option value="6">Mon – Sat</option><option value="7">Mon – Sun</option><option value="5">Mon – Fri</option></select></label>
         </div>
         <p class="muted" style="margin:10px 0 0">
@@ -1315,7 +1349,7 @@ async function afterLogin(){
   try{await loadCloud()}catch(e){console.error(e);setSync("err","Offline – showing cached data")}
   start();
 }
-$("#lgBtn").onclick=async()=>{const email=$("#lgEmail").value.trim(),password=$("#lgPass").value;if(!email||!password)return $("#lgMsg").textContent="Enter email and password.";$("#lgMsg").textContent="Signing in…";const {data,error}=await sb.auth.signInWithPassword({email,password});if(error)return $("#lgMsg").textContent=error.message;user=data.user;afterLogin()};
+$("#lgBtn").onclick=async()=>{const email=$("#lgEmail").value.trim(),password=$("#lgPass").value;if(!email||!password)return $("#lgMsg").textContent="Enter email and password.";$("#lgMsg").textContent="Signing in…";const {data,error}=await sb.auth.signInWithPassword({email,password});if(error)return $("#lgMsg").textContent=error.message;user=data.user;if(SP.mode!=="off")showIntro({force:true,sound:true});afterLogin()};
 $("#lgPass").onkeydown=e=>{if(e.key==="Enter")$("#lgBtn").click()};
 $("#lgLink").onclick=async()=>{const email=$("#lgEmail").value.trim();if(!email)return $("#lgMsg").textContent="Enter your email first.";const {error}=await sb.auth.signInWithOtp({email,options:{emailRedirectTo:location.href.split("#")[0],shouldCreateUser:false}});$("#lgMsg").style.color=error?"var(--bad)":"var(--ok)";$("#lgMsg").textContent=error?error.message:"Check your email for the sign-in link."};
 $("#lgLocal").onclick=()=>{try{localStorage.setItem("dt_barn_mode","local")}catch(e){}mode="local";cacheLoad();setSync("off","Saved on this computer");$("#btnOut").textContent="Exit offline";start()};
@@ -1336,7 +1370,62 @@ $("#btnTheme").onclick=()=>setTheme(document.documentElement.getAttribute("data-
 $("#setTheme").onchange=e=>setTheme(e.target.value);
 if(mq){(mq.addEventListener?mq.addEventListener("change",applyTheme):mq.addListener(applyTheme))}
 applyTheme();
+
+/* =====================================================================
+   OPENING ANIMATION + SOUND (all sounds generated in the browser)
+   ===================================================================== */
+const SP={get mode(){try{return localStorage.getItem("dt_intro")||"always"}catch(e){return"always"}},
+          get sound(){try{return localStorage.getItem("dt_intro_sound")!=="off"}catch(e){return true}}};
+let _actx=null;
+function audioCtx(){try{if(!_actx){const AC=window.AudioContext||window.webkitAudioContext;if(!AC)return null;_actx=new AC()}return _actx}catch(e){return null}}
+function playIntroSound(){
+  if(!SP.sound)return;const ac=audioCtx();if(!ac)return;
+  const go=()=>{if(ac.state!=="running")return;const t0=ac.currentTime+0.02;
+    const master=ac.createGain();master.gain.value=0.55;master.connect(ac.destination);
+    // short echo for space
+    const dl=ac.createDelay();dl.delayTime.value=0.09;const fb=ac.createGain();fb.gain.value=0.22;dl.connect(fb);fb.connect(dl);dl.connect(master);
+    const out=ac.createGain();out.connect(master);out.connect(dl);
+    const noiseBuf=(()=>{const b=ac.createBuffer(1,ac.sampleRate*1,ac.sampleRate),d=b.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=Math.random()*2-1;return b})();
+    const whoosh=(at,dur,f0,f1,vol)=>{const n=ac.createBufferSource();n.buffer=noiseBuf;const f=ac.createBiquadFilter();f.type="lowpass";f.frequency.setValueAtTime(f0,t0+at);f.frequency.exponentialRampToValueAtTime(f1,t0+at+dur);
+      const g=ac.createGain();g.gain.setValueAtTime(0.0001,t0+at);g.gain.linearRampToValueAtTime(vol,t0+at+dur*0.6);g.gain.linearRampToValueAtTime(0.0001,t0+at+dur);n.connect(f);f.connect(g);g.connect(out);n.start(t0+at);n.stop(t0+at+dur)};
+    const tone=(at,freq,dur,vol,type="sine",decay=7)=>{const o=ac.createOscillator();o.type=type;o.frequency.setValueAtTime(freq,t0+at);const g=ac.createGain();g.gain.setValueAtTime(0.0001,t0+at);g.gain.linearRampToValueAtTime(vol,t0+at+0.004);g.gain.setTargetAtTime(0.0001,t0+at+0.01,1/decay);o.connect(g);g.connect(out);o.start(t0+at);o.stop(t0+at+dur)};
+    whoosh(0.25,0.9,300,4500,0.12);
+    {const o=ac.createOscillator();o.frequency.setValueAtTime(200,t0+0.9);o.frequency.exponentialRampToValueAtTime(60,t0+1.15);const g=ac.createGain();g.gain.setValueAtTime(0.5,t0+0.9);g.gain.exponentialRampToValueAtTime(0.0001,t0+1.2);o.connect(g);g.connect(out);o.start(t0+0.9);o.stop(t0+1.25)}
+    [[1.25,523.25],[1.38,659.25],[1.51,783.99],[1.64,1046.5]].forEach(([at,f])=>{tone(at,f,0.7,0.22,"sine",7);tone(at,f*4,0.25,0.06,"sine",22)});
+    {const o=ac.createOscillator();o.frequency.setValueAtTime(2200,t0+1.85);o.frequency.linearRampToValueAtTime(4200,t0+2.45);const g=ac.createGain();g.gain.setValueAtTime(0.0001,t0+1.85);g.gain.linearRampToValueAtTime(0.03,t0+2.1);g.gain.linearRampToValueAtTime(0.0001,t0+2.45);o.connect(g);g.connect(out);o.start(t0+1.85);o.stop(t0+2.5)}
+    {const lp=ac.createBiquadFilter();lp.type="lowpass";lp.frequency.value=1400;const g=ac.createGain();g.gain.setValueAtTime(0.0001,t0+2.05);g.gain.linearRampToValueAtTime(0.05,t0+2.4);g.gain.setValueAtTime(0.05,t0+3.2);g.gain.linearRampToValueAtTime(0.0001,t0+3.95);lp.connect(g);g.connect(out);
+     [261.63,329.63,392,493.88,587.33].forEach(f=>[-0.6,0.6].forEach(dt=>{const o=ac.createOscillator();o.type="triangle";o.frequency.value=f+dt;o.connect(lp);o.start(t0+2.05);o.stop(t0+4)}))}
+    whoosh(3.3,0.7,4000,300,0.09);
+    tone(3.42,1046.5,1.2,0.1,"sine",3.2);tone(3.47,1567.98,1.2,0.07,"sine",3.2);tone(3.42,2103,0.6,0.03,"sine",6);
+  };
+  if(ac.state==="suspended")ac.resume().then(go).catch(()=>{});else go();
+}
+function shouldShowIntro(){const m=SP.mode;if(m==="off")return false;if(m==="daily"){try{const d=iso(new Date());if(localStorage.getItem("dt_intro_last")===d)return false}catch(e){}}return true}
+function showIntro(opts={}){
+  return new Promise(res=>{
+    if(!opts.force&&!shouldShowIntro())return res();
+    try{localStorage.setItem("dt_intro_last",iso(new Date()))}catch(e){}
+    const old=$("#sp");if(old)old.remove();
+    const el=document.createElement("div");el.id="sp";
+    el.innerHTML=`<div class="t"><svg viewBox="0 0 64 64"><defs><linearGradient id="spg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#3fae5f"/><stop offset="1" stop-color="#1f6b34"/></linearGradient><linearGradient id="sph" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".32"/><stop offset=".5" stop-color="#fff" stop-opacity="0"/></linearGradient><linearGradient id="spl" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset=".5" stop-color="#fff" stop-opacity=".55"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient><clipPath id="spc"><rect x="2" y="2" width="60" height="60" rx="16"/></clipPath></defs>
+      <g class="bg"><rect x="2" y="2" width="60" height="60" rx="16" fill="url(#spg)"/><rect x="2" y="2" width="60" height="60" rx="16" fill="url(#sph)"/></g>
+      <path class="roof" d="M9 30 L32 12 L55 30" fill="none" stroke="#f4edcf" stroke-width="4.4" stroke-linecap="round" stroke-linejoin="round"/>
+      <g font-family="Plus Jakarta Sans,Arial Black,Arial" font-weight="800" font-size="14.5" fill="#fff" text-anchor="middle"><text class="L L1" x="17.4" y="45">B</text><text class="L L2" x="27.2" y="45">A</text><text class="L L3" x="37.0" y="45">R</text><text class="L L4" x="46.8" y="45">N</text></g>
+      <rect class="ul" x="17" y="49" width="30" height="3" rx="1.5" fill="#e8a33a"/><g clip-path="url(#spc)"><rect class="gl" x="8" y="2" width="16" height="60" fill="url(#spl)" transform="skewX(-18)"/></g></svg></div>
+      <div class="ti">BARN Daily Delivery Tracker</div><div class="su">Eight8Ate · Purchasing</div><div class="ld"><i></i></div><div class="ms">Loading today's deliveries…</div><button class="skip">Skip ›</button>`;
+    document.body.appendChild(el);
+    if(opts.sound!==false)playIntroSound();
+    let done=false;const finish=()=>{if(done)return;done=true;el.classList.add("leave");setTimeout(()=>{el.remove();res()},560)};
+    const timer=setTimeout(()=>{done=true;setTimeout(()=>{el.remove();res()},620)},3400);
+    el.querySelector(".skip").onclick=()=>{clearTimeout(timer);finish()};
+  });
+}
+function syncIntroSettings(){const a=$("#setIntro"),b=$("#setIntroSound");if(a)a.value=SP.mode;if(b)b.value=SP.sound?"on":"off"}
+$("#setIntro").onchange=e=>{try{localStorage.setItem("dt_intro",e.target.value)}catch(x){}if(e.target.value!=="off")showIntro({force:true,sound:true})};
+$("#setIntroSound").onchange=e=>{try{localStorage.setItem("dt_intro_sound",e.target.value)}catch(x){}if(e.target.value==="on")playIntroSound()};
+syncIntroSettings();
 if("serviceWorker" in navigator&&location.protocol.startsWith("http")){navigator.serviceWorker.register("sw.js?v=3").catch(()=>{})}
+showIntro({sound:true});
 boot();
 </script>
 </body>
